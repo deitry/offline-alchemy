@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="368dp"
+    android:id="@+id/comment_container"
+    android:layout_height="495dp"
+    android:orientation="vertical"
+    android:paddingTop="5px"
+    android:paddingBottom="5px"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/comment_author"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="comment author"
+        android:textStyle="bold"/>
+
+    <!--<TextView
+        android:id="@+id/comment_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="comment author" />-->
+
+    <TextView
+        android:id="@+id/comment_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="comment date" />
+
+    <TextView
+        android:id="@+id/comment_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="comment body" />
+
+    <!--<com.dmsvo.offlinealchemy.classes.views.CommentListView
+        android:id="@+id/responsesList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        />-->
+
+</LinearLayout>
