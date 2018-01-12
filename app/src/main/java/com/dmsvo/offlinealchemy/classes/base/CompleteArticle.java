@@ -4,6 +4,7 @@ import com.dmsvo.offlinealchemy.classes.base.Article;
 import com.dmsvo.offlinealchemy.classes.base.Comment;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +23,10 @@ public class CompleteArticle implements Serializable {
     public CompleteArticle(Article article, List<Comment> comments)
     {
         this.article = article;
-        this.comments = comments;
+        if (comments != null) {
+            this.comments = comments;
+        } else {
+            this.comments = new ArrayList<>();
+        }
     }
 }

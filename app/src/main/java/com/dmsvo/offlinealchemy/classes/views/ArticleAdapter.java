@@ -33,6 +33,12 @@ public class ArticleAdapter extends BaseAdapter {
                 Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void addItems(List<CompleteArticle> additional)
+    {
+        data.addAll(additional);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return data.size();
@@ -48,6 +54,11 @@ public class ArticleAdapter extends BaseAdapter {
         return position;
     }
 
+    public void setItem(int i, CompleteArticle cart)
+    {
+        data.set(i,cart);
+    }
+
     @Override
     public View getView(int position, View view, ViewGroup viewGroup) {
         View vi = view;
@@ -60,16 +71,17 @@ public class ArticleAdapter extends BaseAdapter {
         TextView header = (TextView) vi.findViewById(R.id.header);
         header.setText(article.getName());
 
-        if (article.getWasRead() == 0) {
-            header.setTypeface(null, Typeface.BOLD);
-        } else {
-            header.setTypeface(header.getTypeface(), Typeface.NORMAL);
-        }
+        boolean wasRead = article.getWasRead() == 1;
+        boolean loaded = article.getLoaded() == 1;
 
-        if (article.getLoaded() == 0) {
+        if (!wasRead && !loaded) {
+            header.setTypeface(null, Typeface.BOLD_ITALIC);
+        } else if (!wasRead) {
+            header.setTypeface(null, Typeface.BOLD);
+        } else if (!loaded) {
             header.setTypeface(null, Typeface.ITALIC);
         } else {
-            header.setTypeface(header.getTypeface(), Typeface.NORMAL);
+            header.setTypeface(null, Typeface.NORMAL);
         }
 
         TextView date = (TextView) vi.findViewById(R.id.article_date);
@@ -79,7 +91,7 @@ public class ArticleAdapter extends BaseAdapter {
         if (cart.comments != null) {
             commentsView.setText("Комментариев: " + cart.comments.size());
         } else {
-            commentsView.setVisibility(View.GONE);
+            commentsView.setText("Комментариев: неизвестно");
         }
         // TODO: сделать в виде списка кнопок?
         TextView tagsView = vi.findViewById(R.id.article_tags);

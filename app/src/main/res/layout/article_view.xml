@@ -9,25 +9,30 @@
         android:id="@+id/header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="header"
         />
 
     <TextView
         android:id="@+id/article_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="date"
         />
 
     <TextView
         android:id="@+id/article_comments"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="comments"
         />
 
     <TextView
         android:id="@+id/article_tags"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textStyle="italic"
-        />
+        android:text="tags"
+        android:layout_gravity="end"
+        android:textAlignment="textEnd"
+        android:textStyle="italic" />
 
 </LinearLayout>

@@ -29,13 +29,15 @@ public class DownloadArticles implements Runnable {
             ArticleDao adao = activity.getDb().getArticleDao();
             CommentDao cdao = activity.getDb().getCommentDao();
 
-            List<CompleteArticle> carts =
-                    activity.getLoader().LoadFromDb();
+            List<CompleteArticle> carts;
+//            = activity.getLoader().LoadFromDb();
 
             if (fast) {
-                carts.addAll(activity.getLoader().LoadNumber(20, true));
+                carts = activity.getLoader().LoadNumber(20, true);
+//                carts.addAll(activity.getLoader().LoadNumber(20, true));
             } else {
-                carts.addAll(activity.getLoader().LoadNumber(1, false));
+                carts = activity.getLoader().LoadNumber(1, false);
+//                carts.addAll(activity.getLoader().LoadNumber(1, false));
 //                    TestData.GetTestData(activity, adao, cdao);
             }
 

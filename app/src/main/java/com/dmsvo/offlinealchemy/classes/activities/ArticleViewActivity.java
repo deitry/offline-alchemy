@@ -1,6 +1,8 @@
 package com.dmsvo.offlinealchemy.classes.activities;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,12 +37,15 @@ public class ArticleViewActivity extends AppCompatActivity {
 
     private CompleteArticle cart;
     Handler handler;
+    Intent intent;
 
     public Handler getHandler() { return handler; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTheme(R.style.Dark);
+
         try {
             setContentView(R.layout.activity_article_view);
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -55,17 +60,22 @@ public class ArticleViewActivity extends AppCompatActivity {
                 }
             });
 
-            Intent intent = getIntent();
+            intent = getIntent();
             cart = (CompleteArticle) intent.getSerializableExtra(Main2Activity.OPEN_ARTICLE);
 
             handler = new Handler(Looper.getMainLooper());
 
+            // TODO: если статья не загружена, попытаться загрузить
+
             updateArticle();
+
+            setResult(Activity.RESULT_OK, intent);
 
         } catch (Throwable t) {
             t.printStackTrace();
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -84,6 +94,7 @@ public class ArticleViewActivity extends AppCompatActivity {
         if (entryName.contentEquals("home"))
         {
             finish();
+
             return true;
         }
 
@@ -112,7 +123,9 @@ public class ArticleViewActivity extends AppCompatActivity {
                         if (newVersion != null) {
                             cart = newVersion;
 
-                            loader.SaveInDb(cart);
+//                            loader.SaveInDb(cart);
+
+                            intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
 
                             ArticleViewActivity.this
                                     .getHandler().post(new Runnable() {
@@ -175,6 +188,7 @@ public class ArticleViewActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true); //Set this to true if selecting "home" returns up by a single level in your UI rather than back to the top level or front page.
             //actionBar.setHomeAsUpIndicator(upArrow); // set a custom icon for the default home button
             actionBar.setTitle(cart.article.getName());
+
         }
 
         TextView commentsHeader = findViewById(R.id.comments_header);
@@ -186,33 +200,47 @@ public class ArticleViewActivity extends AppCompatActivity {
         TextView bodyView = findViewById(R.id.article_body);
         bodyView.setText(Html.fromHtml(cart.article.getBody()));
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final CommentAdapter adapter = new CommentAdapter(
-                        ArticleViewActivity.this,
-                        Loader.GetInstance().GetComments(cart.article.getId()));
-//                          Loader.GetAppDb().getCommentDao().getAllChildComments(
-//                                cart.article.getId(),
-//                                0));
+//        final
+        CommentAdapter adapter = new CommentAdapter(
+                ArticleViewActivity.this,
+                cart.comments);
 
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ListView commentsView = findViewById(R.id.commentsView);
-                        commentsView.setAdapter(adapter);
-                        commentsView.setOnTouchListener(new View.OnTouchListener() {
+                ListView commentsView = findViewById(R.id.commentsView);
+        commentsView.setAdapter(adapter);
 
-                            public boolean onTouch(View v, MotionEvent event) {
-                                if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                                    return true; // Indicates that this has been handled by you and will not be forwarded further.
-                                }
-                                return false;
-                            }});
-
-                    }
-                });
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                final CommentAdapter adapter = new CommentAdapter(
+//                        ArticleViewActivity.this,
+//                        Loader.GetInstance().GetComments(cart.article.getId()));
+////                          Loader.GetAppDb().getCommentDao().getAllChildComments(
+////                                cart.article.getId(),
+////                                0));
+//
+////                handler.post(new Runnable() {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        ListView commentsView = findViewById(R.id.commentsView);
+//                        commentsView.setAdapter(adapter);
+//
+//
+//
+////                        TextView titleView = findViewById(R.id.article_header);
+////                        titleView.setText("");
+//
+////                        commentsView.setOnTouchListener(new View.OnTouchListener() {
+////
+////                            public boolean onTouch(View v, MotionEvent event) {
+////                                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+////                                    return true; // Indicates that this has been handled by you and will not be forwarded further.
+////                                }
+////                                return false;
+////                            }});
+//                    }
+//                });
+//            }
+//        }).start();
     }
 }

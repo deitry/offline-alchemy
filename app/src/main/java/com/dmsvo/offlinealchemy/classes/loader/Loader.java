@@ -91,10 +91,27 @@ public class Loader { // implements Callback { // extends ILoader
         return fullList;
     }
 
+    public List<CompleteArticle> LoadFromDb(int count, int offset) {
+        List<CompleteArticle> carts = new ArrayList<>();
+
+        List<Article> articles = db.getArticleDao().getSomeArticles(count, offset);
+
+        for (Article artcl : articles) {
+            List<Comment> comts = GetComments(artcl.getId());
+
+            carts.add(new CompleteArticle(
+                    artcl,
+                    comts
+            ));
+        }
+        return carts;
+    }
+
     public List<CompleteArticle> LoadFromDb() {
-        List<CompleteArticle> carts = new ArrayList<CompleteArticle>();
+        List<CompleteArticle> carts = new ArrayList<>();
 
         List<Article> articles = db.getArticleDao().getAllArticles();
+
         for (Article artcl : articles) {
             List<Comment> comts = GetComments(artcl.getId());
 

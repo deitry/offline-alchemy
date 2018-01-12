@@ -25,7 +25,9 @@ public class UpdateListView implements Runnable {
     private Main2Activity activity;
     private List<CompleteArticle> articles;
 
-    public UpdateListView(@NonNull Main2Activity activity, @NonNull List<CompleteArticle> articles) {
+    public UpdateListView(@NonNull Main2Activity activity,
+                          @NonNull List<CompleteArticle> articles
+    ) {
         this.activity = activity;
         this.articles = articles;
     }
@@ -33,17 +35,19 @@ public class UpdateListView implements Runnable {
     @Override
     public void run() {
         try {
-            // определяем массив типа String
-//            List<String> articleNames = new ArrayList<>();
-//            for (Article article : articles) {
-//                articleNames.add(article.getName());
-//            }
-            // используем адаптер данных
-            ArticleAdapter adapter = new ArticleAdapter(
-                    activity,
-                    articles);             //android.R.layout.simple_list_item_1,
 
             ListView articlesView = activity.findViewById(R.id.articleslist);
+            ArticleAdapter adapter = (ArticleAdapter) articlesView.getAdapter();
+            if (adapter == null) {
+                adapter = new ArticleAdapter(
+                        activity,
+                        articles);             //android.R.layout.simple_list_item_1,
+                articlesView.setAdapter(adapter);
+            } else {
+                // не просто добавлять, а в конкретные места?
+                adapter.addItems(articles);
+            }
+
             articlesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -51,25 +55,16 @@ public class UpdateListView implements Runnable {
 
                     CompleteArticle cart = (CompleteArticle) adapterView.getItemAtPosition(i);
                     if (cart != null) {
-                        intent.putExtra(activity.OPEN_ARTICLE, cart);
-                        activity.startActivity(intent);
-
                         cart.article.setWasRead(1);
 
-                        final Article updatedArticle = cart.article;
-
-                        Thread thr = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                UpdateListView.this.activity.getDb().getArticleDao().update(updatedArticle);
-                            }
-                        });
-                        thr.start();
+                        intent.putExtra(activity.OPEN_ARTICLE, cart);
+                        activity.startActivityForResult(intent,1);
                     }
                 }
             });
 
-            articlesView.setAdapter(adapter);
+            //articlesView.setAdapter(adapter);
+//            adapter.notifyDataSetChanged();
 
             ProgressBar pbar = activity.findViewById(R.id.progressBar);
             pbar.setVisibility(View.INVISIBLE);

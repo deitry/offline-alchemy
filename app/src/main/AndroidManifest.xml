@@ -15,6 +15,7 @@
             android:name=".classes.activities.Main2Activity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
+        <!--android:theme="@style/Dark">-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

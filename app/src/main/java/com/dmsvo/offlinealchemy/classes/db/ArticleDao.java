@@ -36,6 +36,10 @@ public interface ArticleDao {
     @Query("SELECT * FROM article ORDER BY date DESC")
     List<Article> getAllArticles();
 
+    // Получение всех постов из бд
+    @Query("SELECT * FROM article ORDER BY date DESC LIMIT :count OFFSET :offset")
+    List<Article> getSomeArticles(int count, int offset);
+
     // Получение поста с конкретным id
     @Query("SELECT * FROM article WHERE id = :id")
     Article getArticle(int id);

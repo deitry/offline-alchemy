@@ -158,7 +158,7 @@ public class ArticleParser {
 
         Calendar cal = Calendar.getInstance();
         // 2018-01-11T11:18:00+03:00
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
         try {
             cal.setTime(sdf.parse(dateString));
         } catch (Throwable t) {
@@ -174,8 +174,11 @@ public class ArticleParser {
         //ljtags
         elms = articleBody.getElementsByClass("ljtags");
         List<String> tags = null;
-        if (elms != null && elms.size() > 0)
+        if (elms != null && elms.size() > 0) {
             tags = BuildTags(elms.first());
+        } else {
+            tags = new ArrayList<>();
+        }
 
         Article artcl = new Article();
         artcl.setName(title);

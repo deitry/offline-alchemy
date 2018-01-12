@@ -17,8 +17,14 @@ import java.util.List;
 
 public class LoadFromDb implements Runnable {
     private Main2Activity activity;
+    private int count;
+    private int offset;
 
-    public LoadFromDb(@NonNull Main2Activity activity) { this.activity = activity; }
+    public LoadFromDb(@NonNull Main2Activity activity, int count, int offset) {
+        this.activity = activity;
+        this.count = count;
+        this.offset = offset;
+    }
 
     @Override
     public void run() {
@@ -27,10 +33,9 @@ public class LoadFromDb implements Runnable {
             ArticleDao adao = db.getArticleDao();
             CommentDao cdao = db.getCommentDao();
 
-            List<CompleteArticle> carts = activity.getLoader().LoadFromDb();
+            List<CompleteArticle> carts = activity.getLoader().LoadFromDb(count, offset);
 
-            activity.getHandler().post(new UpdateListView(activity,
-                    carts));
+            activity.getHandler().post(new UpdateListView(activity, carts));
         } catch (Throwable t) {
             t.printStackTrace();
         }

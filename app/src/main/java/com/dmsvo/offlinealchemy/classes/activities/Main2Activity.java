@@ -1,7 +1,9 @@
 package com.dmsvo.offlinealchemy.classes.activities;
 
+import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,16 +19,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.dmsvo.offlinealchemy.R;
+import com.dmsvo.offlinealchemy.classes.base.Article;
+import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
 import com.dmsvo.offlinealchemy.classes.db.AppDb;
 import com.dmsvo.offlinealchemy.classes.runnables.ClearDb;
 import com.dmsvo.offlinealchemy.classes.runnables.LoadFromDb;
 import com.dmsvo.offlinealchemy.classes.loader.Loader;
 import com.dmsvo.offlinealchemy.classes.runnables.DownloadArticles;
+import com.dmsvo.offlinealchemy.classes.views.ArticleAdapter;
+
+import java.io.Serializable;
 
 public class Main2Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -37,13 +46,23 @@ public class Main2Activity extends AppCompatActivity
     AppDb db;
     Loader loader;
 
-    public AppDb getDb() { return db; }
-    public Handler getHandler() { return handler; }
-    public Loader getLoader() { return loader; }
+    public AppDb getDb() {
+        return db;
+    }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    public Loader getLoader() {
+        return loader;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setTheme(R.style.Dark);
 
         setContentView(R.layout.activity_main2);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -76,17 +95,63 @@ public class Main2Activity extends AppCompatActivity
         handler = new Handler(Looper.getMainLooper());
         loader = new Loader(db);
 
-        Thread thread = new Thread(new LoadFromDb(this));
+//        this.onNavigateUp();
+
+        Thread thread = new Thread(new LoadFromDb(this, 20, 0));
         thread.start();
     }
 
     @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                CompleteArticle result = (CompleteArticle) data.getSerializableExtra(this.OPEN_ARTICLE);
+
+                ListView articlesView = findViewById(R.id.articleslist);
+                final ArticleAdapter adapter = (ArticleAdapter) articlesView.getAdapter();
+
+                for (int i = 0; i < adapter.getCount(); i++)
+                {
+                    final CompleteArticle item = (CompleteArticle) adapter.getItem(i);
+                    if (item.article.getId() == result.article.getId())
+                    {
+                        item.article = result.article;
+                        item.comments = result.comments;
+
+//                        adapter.setItem(i, result);
+//                        articlesView.getItemAtPosition(i);
+
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                loader.SaveInDb(result);
+                            }
+                        }).start();
+
+//                        View vi = adapter.getView(i, null, null);
+
+                        break;
+//                        articlesView.setAdapter(null);
+//                        articlesView.setAdapter(adapter);
+
+//                        adapter.;
+                    }
+                }
+
+//                articlesView.invalidateViews();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
         }
     }
 
@@ -188,4 +253,19 @@ public class Main2Activity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public void onClickBtn(View v)
+    {
+        ListView articles = findViewById(R.id.articleslist);
+        int cur = articles.getAdapter().getCount();
+
+        ProgressBar pbar = findViewById(R.id.progressBar);
+        pbar.setVisibility(View.VISIBLE);
+
+        // FIXME: вообще говоря, оффсет для чтения из базы данных и текущее количество
+        // записей - это скорее всего немного разные вещи. Попробуем так
+        new Thread(new LoadFromDb(this,20,cur)).start();
+        //Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
+    }
+
 }

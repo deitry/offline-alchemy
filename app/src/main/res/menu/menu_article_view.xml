@@ -1,7 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.dmsvo.offlinealchemy.classes.activities.ArticleViewActivity">
+    tools:context="com.dmsvo.offlinealchemy.classes.activities.ArticleViewActivity"
+    android:background="@color/dark">
 
     <item
         android:id="@+id/reload_article"

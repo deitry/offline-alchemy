@@ -6,6 +6,15 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <!--<item name="actionOverflowMenuStyle">@style/CMOptionsMenu</item>-->
+
+        <!--<item name="android:background">@color/dark</item>-->
+        <item name="android:windowBackground">@color/dark</item>
+        <item name="android:colorBackground">@color/dark</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHint">@color/soft_grey</item>
+        <item name="android:popupBackground">@color/dark</item>
+        <item name="android:itemBackground">@color/dark</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -13,8 +22,35 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="Dark.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <!--<item name="android:navigationBarColor">@color/colorPrimary</item>-->
+        <!--<item name="android:background">@color/dark</item>-->
+        <item name="android:windowBackground">@color/dark</item>
+        <item name="android:colorBackground">@color/dark</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHint">@color/soft_grey</item>
+        <item name="android:panelFullBackground">@color/dark</item>
+        <!--<item name="android:background">@color/dark</item>-->
+        <item name="android:popupBackground">@color/dark</item>
+        <item name="android:itemBackground">@color/dark</item>
+
+        <!--<item name="android:radioButtonStyle">@style/radioDark</item>-->
+    </style>
+
+    <!--<style name="CMOptionsMenu" parent="Widget.AppCompat.PopupMenu.Overflow">-->
+        <!--<item name="android:popupBackground">@color/dark</item>-->
+    <!--</style>-->
 
 </resources>
