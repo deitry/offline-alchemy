@@ -94,8 +94,10 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     action_refresh_list
-    <string name="action_download_article">Ещё статью</string>
-    <string name="action_refresh_list">Обновить список</string>
+    <string name="action_download_article">+1 целиком</string>
+    <string name="action_open_path">Открыть по ссылке</string>
+    <string name="action_refresh_list">+20</string>
+    <string name="action_refresh_tags">Обновить теги</string>
     <string name="action_clear_db">Очистить БД</string>
     <string name="action_reload_article">Перезагрузить статью</string>
     <string name="action_settings">Настройки</string>
@@ -113,6 +115,14 @@
 
     <string name="pref_title_display_name">Display name</string>
     <string name="pref_default_display_name">John Smith</string>
+
+    <string name="nav_overall">Последние статьи</string>
+    <string name="nav_random">Случайная статья</string>
+    <string name="nav_favorite">Избранное</string>
+    <string name="nav_future_read">Для прочтения</string>
+    <string name="nav_by_tags">Статьи по тегам</string>
+    <string name="nav_by_date">Статьи по дате</string>
+    <string name="nav_search">Поиск</string>
 
     <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
     <string-array name="pref_example_list_titles">
@@ -176,4 +186,6 @@
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="title_activity_tags">TagsActivity</string>
 </resources>

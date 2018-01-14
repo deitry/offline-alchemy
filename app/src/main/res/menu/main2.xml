@@ -16,6 +16,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_open_path"
+        android:orderInCategory="100"
+        android:title="@string/action_open_path"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_clear_db"
         android:orderInCategory="100"
         android:title="@string/action_clear_db"

@@ -371,4 +371,8 @@ public class ArticleParser {
         }
         return list;
     }
+
+    public static String Tag(String tag) {
+        return "%" + tag + "%";
+    }
 }

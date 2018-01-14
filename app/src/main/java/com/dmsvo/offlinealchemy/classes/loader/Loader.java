@@ -3,9 +3,12 @@ package com.dmsvo.offlinealchemy.classes.loader;
 import com.dmsvo.offlinealchemy.classes.base.Article;
 import com.dmsvo.offlinealchemy.classes.base.Comment;
 import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
+import com.dmsvo.offlinealchemy.classes.base.Tag;
 import com.dmsvo.offlinealchemy.classes.db.AppDb;
 import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
 import com.dmsvo.offlinealchemy.classes.db.CommentDao;
+import com.dmsvo.offlinealchemy.classes.db.Converters;
+import com.dmsvo.offlinealchemy.classes.db.TagDao;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,7 +20,11 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.HttpUrl;
@@ -89,6 +96,25 @@ public class Loader { // implements Callback { // extends ILoader
         }
 
         return fullList;
+    }
+
+    public List<CompleteArticle> LoadFromDb(String tag, int count, int offset) {
+        List<CompleteArticle> carts = new ArrayList<>();
+
+        List<Article> articles = db.getArticleDao().getSomeArticles(
+                ArticleParser.Tag(tag),
+                count,
+                offset);
+
+        for (Article artcl : articles) {
+            List<Comment> comts = GetComments(artcl.getId());
+
+            carts.add(new CompleteArticle(
+                    artcl,
+                    comts
+            ));
+        }
+        return carts;
     }
 
     public List<CompleteArticle> LoadFromDb(int count, int offset) {
@@ -301,10 +327,11 @@ public class Loader { // implements Callback { // extends ILoader
             e.printStackTrace();
         }
 
-        SaveInDb(cart.comments);
+        SaveCommentsInDb(cart.comments);
+        SaveTagsInDb(cart.article.getTags());
     }
 
-    void SaveInDb(List<Comment> comments)
+    void SaveCommentsInDb(List<Comment> comments)
     {
         if (comments == null) return;
 
@@ -313,10 +340,31 @@ public class Loader { // implements Callback { // extends ILoader
                 Comment foundCmt = db.getCommentDao().getComment(cmnt.getId());
                 if (foundCmt == null)
                 {
-                        db.getCommentDao().insertAll(cmnt);
+                    db.getCommentDao().insertAll(cmnt);
 
                 } else {
                     db.getCommentDao().update(cmnt);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void SaveTagsInDb(List<String> tags)
+    {
+        if (tags == null) return;
+        TagDao tdao = db.getTagDao();
+
+        for (String tag : tags) {
+            try {
+                Tag foundTag = tdao.getTag(tag);
+                if (foundTag == null)
+                {
+                    tdao.insertAll(new Tag(tag));
+                } else {
+                    foundTag.inc();
+                    tdao.update(foundTag);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -407,5 +455,50 @@ public class Loader { // implements Callback { // extends ILoader
         db.getCommentDao().update(comment);
 
         return level;
+    }
+
+    public void updateTags() {
+        TagDao tdao = db.getTagDao();
+
+        tdao.clearTags();
+
+        int cnt = tdao.getCount();
+        if (cnt == 0)
+        {
+            List<Tag> tags = getAllTags();
+            for (Tag tag : tags)
+            {
+                tdao.insertAll(tag);
+            }
+        } else {
+            // если у нас сколько-то тегов уже есть?
+        }
+    }
+
+    List<Tag> getAllTags() {
+        List<Article> articles = db.getArticleDao().getAllArticles();
+
+        List<Tag> tags = new ArrayList<>();
+
+        Map<String, Integer> tagsMap = new HashMap<>();
+
+        for (Article article : articles) {
+            List<String> artTags = article.getTags();
+            for (String tag : artTags) {
+                if (tagsMap.containsKey(tag)) {
+                    tagsMap.put(tag, tagsMap.get(tag)+1);
+                } else {
+                    tagsMap.put(tag, 1);
+                }
+            }
+        }
+
+        for (Map.Entry entry : tagsMap.entrySet()) {
+            tags.add(new Tag(
+                    (String) entry.getKey(),
+                    (Integer) entry.getValue()));
+        }
+
+        return tags;
     }
 }

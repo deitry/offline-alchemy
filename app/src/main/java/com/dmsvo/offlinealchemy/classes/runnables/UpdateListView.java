@@ -43,25 +43,24 @@ public class UpdateListView implements Runnable {
                         activity,
                         articles);             //android.R.layout.simple_list_item_1,
                 articlesView.setAdapter(adapter);
+                articlesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        Intent intent = new Intent(activity, ArticleViewActivity.class);
+
+                        CompleteArticle cart = (CompleteArticle) adapterView.getItemAtPosition(i);
+                        if (cart != null) {
+                            cart.article.setWasRead(1);
+
+                            intent.putExtra(activity.OPEN_ARTICLE, cart);
+                            activity.startActivityForResult(intent,1);
+                        }
+                    }
+                });
             } else {
                 // не просто добавлять, а в конкретные места?
                 adapter.addItems(articles);
             }
-
-            articlesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    Intent intent = new Intent(activity, ArticleViewActivity.class);
-
-                    CompleteArticle cart = (CompleteArticle) adapterView.getItemAtPosition(i);
-                    if (cart != null) {
-                        cart.article.setWasRead(1);
-
-                        intent.putExtra(activity.OPEN_ARTICLE, cart);
-                        activity.startActivityForResult(intent,1);
-                    }
-                }
-            });
 
             //articlesView.setAdapter(adapter);
 //            adapter.notifyDataSetChanged();

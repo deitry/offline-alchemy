@@ -30,7 +30,8 @@
         android:id="@+id/comment_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="comment body" />
+        android:text="comment body"
+        android:autoLink="web"/>
 
     <!--<com.dmsvo.offlinealchemy.classes.views.CommentListView
         android:id="@+id/responsesList"

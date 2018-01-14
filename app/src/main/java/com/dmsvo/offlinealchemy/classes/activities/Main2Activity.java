@@ -10,6 +10,8 @@ import android.os.Looper;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,15 +22,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dmsvo.offlinealchemy.R;
 import com.dmsvo.offlinealchemy.classes.base.Article;
+import com.dmsvo.offlinealchemy.classes.base.Comment;
 import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
+import com.dmsvo.offlinealchemy.classes.base.Tag;
 import com.dmsvo.offlinealchemy.classes.db.AppDb;
+import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
+import com.dmsvo.offlinealchemy.classes.db.TagDao;
+import com.dmsvo.offlinealchemy.classes.loader.ArticleParser;
 import com.dmsvo.offlinealchemy.classes.runnables.ClearDb;
 import com.dmsvo.offlinealchemy.classes.runnables.LoadFromDb;
 import com.dmsvo.offlinealchemy.classes.loader.Loader;
@@ -36,15 +46,24 @@ import com.dmsvo.offlinealchemy.classes.runnables.DownloadArticles;
 import com.dmsvo.offlinealchemy.classes.views.ArticleAdapter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class Main2Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final String OPEN_ARTICLE = "com.dmsvo.offlinealchemy.ARTICLE";
+    public static final String OPEN_TAG = "com.dmsvo.offlinealchemy.TAG";
+    public static final int I_OPEN_ARTICLE = 1;
+    public static final int I_OPEN_TAGS = 2;
 
     Handler handler;
     AppDb db;
     Loader loader;
+    String tagToOpen = "";
+
+    public String getTagToOpen() { return tagToOpen; }
 
     public AppDb getDb() {
         return db;
@@ -89,6 +108,7 @@ public class Main2Activity extends AppCompatActivity
         db = Room.databaseBuilder(getApplicationContext(),
                 AppDb.class, "articles-database")
                 .addMigrations(AppDb.MIGRATION_2_3)
+                .addMigrations(AppDb.MIGRATION_3_4)
 //                .fallbackToDestructiveMigration()
                 .build();
 
@@ -104,7 +124,7 @@ public class Main2Activity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == 1) {
+        if (requestCode == I_OPEN_ARTICLE) {
             if(resultCode == Activity.RESULT_OK){
                 CompleteArticle result = (CompleteArticle) data.getSerializableExtra(this.OPEN_ARTICLE);
 
@@ -149,8 +169,41 @@ public class Main2Activity extends AppCompatActivity
                     }
                 });
             }
+
             if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
+            }
+        } else if (requestCode == I_OPEN_TAGS) {
+            if (data != null) {
+                tagToOpen = data.getStringExtra(OPEN_TAG);
+            }
+
+            if (tagToOpen != null & !tagToOpen.equals("")) {
+                ProgressBar pbar = findViewById(R.id.progressBar);
+                pbar.setVisibility(View.VISIBLE);
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final List<CompleteArticle> articles = loader.LoadFromDb(
+                                tagToOpen,
+                                20,
+                                0);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ListView articlesView = findViewById(R.id.articleslist);
+                                articlesView.setAdapter(
+                                        new ArticleAdapter(
+                                                Main2Activity.this,
+                                                articles));
+                                ProgressBar pbar = findViewById(R.id.progressBar);
+                                pbar.setVisibility(View.INVISIBLE);
+                            }
+                        });
+                    }
+                }).start();
             }
         }
     }
@@ -186,6 +239,96 @@ public class Main2Activity extends AppCompatActivity
                     toast.show();
                 }
                 return true;
+            case R.id.action_open_path: {
+                if (loader.isOnline()) {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(Main2Activity.this);
+                    alertDialog.setTitle("Открыть по ссылке");
+                    alertDialog.setMessage("Введите путь к статье");
+
+                    final EditText input = new EditText(Main2Activity.this);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.MATCH_PARENT);
+                    input.setLayoutParams(lp);
+                    alertDialog.setView(input);
+
+                    alertDialog.setPositiveButton("Ок",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String path = input.getText().toString();
+                                    if (path != null && !path.equals("")) {
+                                        // пытаемся загрузить статью
+                                        ProgressBar pbar = findViewById(R.id.progressBar);
+                                        pbar.setVisibility(View.VISIBLE);
+
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                CompleteArticle cart = null;
+                                                try {
+                                                    cart = loader.LoadArticle(path);
+                                                } catch (Throwable t) {
+                                                    t.printStackTrace();
+                                                }
+
+                                                if (cart != null) {
+                                                    loader.SaveInDb(cart);
+                                                    final List<CompleteArticle> list = new ArrayList<>();
+                                                    list.add(cart);
+
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            ListView articlesView = Main2Activity.this.findViewById(R.id.articleslist);
+                                                            ArticleAdapter adapter = (ArticleAdapter) articlesView.getAdapter();
+
+                                                            adapter.addItems(list);
+
+                                                            ProgressBar pbar = findViewById(R.id.progressBar);
+                                                            pbar.setVisibility(View.INVISIBLE);
+                                                        }
+                                                    });
+                                                } else {
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            Toast toast = Toast.makeText(Main2Activity.this.getApplicationContext(),
+                                                                    "Не удалось загрузить статью!",
+                                                                    Toast.LENGTH_SHORT);
+                                                            toast.show();
+
+                                                            ProgressBar pbar = findViewById(R.id.progressBar);
+                                                            pbar.setVisibility(View.INVISIBLE);
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }).start();
+                                    } else {
+                                        Toast toast = Toast.makeText(Main2Activity.this.getApplicationContext(),
+                                                "Отсутствует путь!",
+                                                Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                }
+                            });
+
+                    alertDialog.setNegativeButton("Отмена",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+                    alertDialog.show();
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Отсутствует подключение к интернету!",
+                            Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+
+                return true;
+            }
             case R.id.action_settings:
                 return true;
             case R.id.action_download_article:
@@ -235,13 +378,70 @@ public class Main2Activity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        final ArticleDao adao = db.getArticleDao();
 
-        } else if (id == R.id.nav_slideshow) {
+        if (id == R.id.nav_overall) {
+            // отобразить статьи без тега
+            tagToOpen = null;
 
-        } else if (id == R.id.nav_manage) {
+            ProgressBar pbar = findViewById(R.id.progressBar);
+            pbar.setVisibility(View.VISIBLE);
+
+            ListView articlesView = findViewById(R.id.articleslist);
+            articlesView.setAdapter(null);
+
+            Thread thread = new Thread(new LoadFromDb(this, 20, 0));
+            thread.start();
+
+        } else if (id == R.id.nav_random) {
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int cnt = adao.getCount();
+                        int rint = new Random().nextInt(cnt);
+                        Article article = adao.getArticleByOffset(rint);
+                        List<Comment> comments = loader.GetComments(article.getId());
+
+                        Intent intent = new Intent(Main2Activity.this, ArticleViewActivity.class);
+
+                        CompleteArticle cart = new CompleteArticle(article, comments);
+                        if (cart != null) {
+                            cart.article.setWasRead(1);
+
+                            intent.putExtra(Main2Activity.this.OPEN_ARTICLE, cart);
+                            Main2Activity.this.startActivityForResult(intent, 1);
+                        }
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                }
+            }).start();
+
+        } else if (id == R.id.nav_future_read) {
+
+        } else if (id == R.id.nav_favorite) {
+
+        } else if (id == R.id.nav_by_tags) {
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // если тегов нет, заполняем
+                    Intent intent = new Intent(
+                            Main2Activity.this,
+                            TagsActivity.class);
+                    intent.putExtra("search_type", 1);
+                    Main2Activity.this.startActivityForResult(
+                            intent,
+                            2);
+                }
+            }).start();
+
+        } else if (id == R.id.nav_by_date) {
+
+        } else if (id == R.id.nav_search) {
 
         } else if (id == R.id.nav_share) {
 

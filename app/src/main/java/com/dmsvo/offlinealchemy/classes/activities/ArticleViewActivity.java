@@ -15,6 +15,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -199,6 +200,7 @@ public class ArticleViewActivity extends AppCompatActivity {
 
         TextView bodyView = findViewById(R.id.article_body);
         bodyView.setText(Html.fromHtml(cart.article.getBody()));
+        bodyView.setMovementMethod(LinkMovementMethod.getInstance());
 
 //        final
         CommentAdapter adapter = new CommentAdapter(

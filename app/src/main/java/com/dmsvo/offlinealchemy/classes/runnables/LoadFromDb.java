@@ -7,6 +7,7 @@ import com.dmsvo.offlinealchemy.classes.activities.Main2Activity;
 import com.dmsvo.offlinealchemy.classes.db.AppDb;
 import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
 import com.dmsvo.offlinealchemy.classes.db.CommentDao;
+import com.dmsvo.offlinealchemy.classes.loader.ArticleParser;
 
 import java.lang.Runnable;
 import java.util.List;
@@ -33,7 +34,14 @@ public class LoadFromDb implements Runnable {
             ArticleDao adao = db.getArticleDao();
             CommentDao cdao = db.getCommentDao();
 
-            List<CompleteArticle> carts = activity.getLoader().LoadFromDb(count, offset);
+            List<CompleteArticle> carts;
+            String tag = activity.getTagToOpen();
+
+            if (tag == null || tag.equals("")) {
+                carts = activity.getLoader().LoadFromDb(count, offset);
+            } else {
+                carts = activity.getLoader().LoadFromDb(tag, count, offset);
+            }
 
             activity.getHandler().post(new UpdateListView(activity, carts));
         } catch (Throwable t) {

@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -76,8 +77,6 @@ public class CommentAdapter extends BaseAdapter {
                         )
                 );
             }
-//        TextView levelView = vi.findViewById(R.id.comment_level);
-//        levelView.setText("level = " + comt.getLevel());
 
             TextView dateView = vi.findViewById(R.id.comment_date);
             Date date = comt.getDate();
@@ -86,46 +85,10 @@ public class CommentAdapter extends BaseAdapter {
 
             TextView bodyView = vi.findViewById(R.id.comment_body);
             String body = comt.getBody();
-            if (body != null)
+            if (body != null) {
                 bodyView.setText(Html.fromHtml(body));
-
-//            if (comt.responses != null && comt.responses.size() > 0) {
-//                CommentListView commentsView = vi.findViewById(R.id.responsesList);
-//                commentsView.setAdapter(new CommentAdapter(context, comt.responses));
-//            }
-
-//            for (Comment comt : comments)
-//            {
-//                final View fView = inflater.inflate(R.layout.comment_view, null);
-
-//                new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        List<Comment> responses = Loader.GetAppDb().getCommentDao().getAllChildComments(
-//                                comt.getArticleId(),
-//                                comt.getId());
-//
-//                        if (responses != null && responses.size() > 0) {
-//                            final CommentAdapter adapter = new CommentAdapter(
-//                                    CommentAdapter.this.context,
-//                                    responses);
-//
-//                            new Handler(Looper.getMainLooper()).post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    CommentListView commentsView = fView.findViewById(R.id.responsesList);
-//                                    commentsView.setAdapter(adapter);
-//
-////                                commentsView.invalidateViews();
-////                                int height = commentsView.calculateHeight();
-////                                commentsView.setMinimumHeight(height);
-////                                CommentAdapter.this.notifyDataSetChanged();
-//                                }
-//                            });
-//                        }
-//                    }
-//                }).start();
-//            }
+                bodyView.setMovementMethod(LinkMovementMethod.getInstance());
+            }
 
             int left = comt.getLevel()
                     * (int) context.getResources().getDimension(R.dimen.comment_indent);
@@ -135,14 +98,6 @@ public class CommentAdapter extends BaseAdapter {
             LinearLayout layout = vi.findViewById(R.id.comment_container);
             layout.setPadding(left, 0, 0, 0);
 
-//            CommentListView responsesView = vi.findViewById(R.id.responsesList);
-//            responsesView.setAdapter(new CommentAdapter(
-//                    this.context,
-//                    Loader.GetAppDb().getCommentDao().getAllChildComments(
-//                            comt.getArticleId(),
-//                            comt.getId())));
-
-//            return fView;
         } catch (Exception e) {
             e.printStackTrace();
         }
