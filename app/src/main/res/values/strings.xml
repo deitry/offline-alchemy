@@ -97,9 +97,11 @@
     <string name="action_download_article">+1 целиком</string>
     <string name="action_open_path">Открыть по ссылке</string>
     <string name="action_refresh_list">+20</string>
+    <string name="action_has_new">Есть новые?</string>
     <string name="action_refresh_tags">Обновить теги</string>
     <string name="action_clear_db">Очистить БД</string>
     <string name="action_reload_article">Перезагрузить статью</string>
+    <string name="action_open_browser">Открыть в браузере</string>
     <string name="action_settings">Настройки</string>
     <string name="title_activity_settings">Settings</string>
 

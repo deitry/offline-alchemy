@@ -117,7 +117,7 @@ public class Main2Activity extends AppCompatActivity
 
 //        this.onNavigateUp();
 
-        Thread thread = new Thread(new LoadFromDb(this, 20, 0));
+        Thread thread = new Thread(new LoadFromDb(this, 7, 0));
         thread.start();
     }
 
@@ -225,6 +225,50 @@ public class Main2Activity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         switch (id)
         {
+            case R.id.action_has_new:
+                if (loader.isOnline()) {
+                    ProgressBar pbar = findViewById(R.id.progressBar);
+                    pbar.setVisibility(View.VISIBLE);
+
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final int newArticles = Main2Activity.this.loader.hasNewArticles();
+                            if (newArticles > 0) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast toast = Toast.makeText(getApplicationContext(),
+                                                "Новых статей: " + newArticles,
+                                                Toast.LENGTH_SHORT);
+                                        toast.show();
+                                        ProgressBar pbar = findViewById(R.id.progressBar);
+                                        pbar.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+                            } else {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast toast = Toast.makeText(getApplicationContext(),
+                                                "Новых статей нет!",
+                                                Toast.LENGTH_SHORT);
+                                        toast.show();
+                                        ProgressBar pbar = findViewById(R.id.progressBar);
+                                        pbar.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    thread.start();
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Отсутствует подключение к интернету!",
+                            Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                return true;
             case R.id.action_refresh_list:
                 if (loader.isOnline()) {
                     ProgressBar pbar = findViewById(R.id.progressBar);
@@ -266,7 +310,21 @@ public class Main2Activity extends AppCompatActivity
                                             public void run() {
                                                 CompleteArticle cart = null;
                                                 try {
-                                                    cart = loader.LoadArticle(path);
+                                                    String tPath;
+                                                    int artId = 0;
+                                                    try {
+                                                        artId = Integer.parseInt(path);
+                                                    } catch (Throwable t) {
+
+                                                    }
+
+                                                    if (artId != 0) {
+                                                        tPath = loader.getRoot() + artId + ".html";
+                                                    } else {
+                                                        tPath = path;
+                                                    }
+
+                                                    cart = loader.LoadArticle(tPath);
                                                 } catch (Throwable t) {
                                                     t.printStackTrace();
                                                 }

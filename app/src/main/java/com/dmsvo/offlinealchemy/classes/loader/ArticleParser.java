@@ -114,9 +114,7 @@ public class ArticleParser {
             dateTime = calendar.getTime();
         }
 
-        List<Comment> comments = GetComments(   // loader,
-                GetAllComments(loader, id),     // articleBody),
-                id);
+        List<Comment> comments = GetComments(loader.LoadComments(id), id);
 
         Article artcl = new Article();
         artcl.setName(title);
@@ -209,99 +207,6 @@ public class ArticleParser {
         return tags;
     }
 
-    static JSONArray GetAllComments(Loader loader, int articleId)
-    {
-        return loader.LoadComments(articleId);
-    }
-
-
-    static JSONArray GetAllComments(Loader loader, Document articleBody)
-    {
-        // собрать все комментарии с этой страницы
-        JSONArray all
-                = GetJsonComments(articleBody);
-
-        // перейти если есть ссылка на следующую страницу, собрать всё с неё
-        Elements links = articleBody.getElementsByClass("b-pager-link--next");
-        if (links != null && links.size() > 0)
-        {
-            Element el = links.first();
-            String href = el.attr("href");
-            String path2next = loader.getRoot() + href;
-
-            Document nextPage = Jsoup.parse(loader.LoadPage(path2next));
-            if (nextPage != null) {
-                JSONArray additional = GetAllComments(loader, nextPage);
-
-                if (additional != null && additional.length() > 0) {
-                    for (int i = 0; i < additional.length(); i++) {
-                        try {
-                            JSONObject obj = additional.getJSONObject(i);
-                            all.put(obj);
-                        } catch (Throwable t) {
-                            t.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }
-
-        return all;
-    }
-
-    static JSONArray GetJsonComments(Document articleBody)
-    {
-        // FIXME: загружать комментарии
-        // TODO: а если часть комментариев на новой странице??!!
-        // пример ссылки для перехода на следующую страницу
-        // как узнать, сколько всего комментов и нужно ли переходить?
-//        <a class="
-//        b-pager-link
-//        b-pager-link--next
-//        js-elem-bgcolor--before
-//        " href="/521344.html?page=2" target="_self">
-        // <script>
-        //      Site.page = {JSON}
-
-        Elements elms = articleBody.select("script");
-        Pattern p = Pattern.compile(".*Site\\.page = (.+)"); // (?is) //Regex for the value of the key
-        String commentsBody = "";
-        for (Element el : elms)
-        {
-            String scriptBody = el.html();
-            String[] scriptStrs = scriptBody.split("\n");
-            for (String s : scriptStrs) {
-                Matcher m = p.matcher(s);
-                if (m.matches()) {
-                    commentsBody = m.group(1);
-                }
-            }
-        }
-
-        if (commentsBody != "") {
-            JSONObject commentsJson;
-
-            try {
-                commentsJson = new JSONObject(commentsBody);
-
-                // проходимся по всем комментариям
-                // если не имеет родителя - парсим
-                // если имеет - пропускаем
-
-                JSONArray commentsBlock = commentsJson.getJSONArray("comments");
-
-                // если есть переход на следующую страницу,
-                // то переходим на неё и считываем комментарии оттуда
-
-                return commentsBlock;
-
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
     static List<Comment> GetComments(JSONArray commentsJson, int articleId)
     {
         List<Comment> list = new ArrayList<>();
@@ -311,59 +216,8 @@ public class ArticleParser {
             for (int i = 0; i < len; i++) {
                 JSONObject commentJson = commentsJson.getJSONObject(i);
                 Comment comment = CommentParser.BuildComment(commentJson, articleId);
-                list.add(comment);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    static List<Comment> GetComments(Loader loader, JSONArray commentsJson, int articleId)
-    {
-        List<Comment> list = new ArrayList<>();
-
-        int len = commentsJson.length();
-        try {
-
-            for (int i = 0; i < len; i++) {
-                JSONObject commentJson = commentsJson.getJSONObject(i);
-
-                // поскольку вложенные комментарии могут не подгружаться,
-                // для универсальности мы считываем только "корневые" комментарии,
-                // и для каждого запрашиваем список вложенных
-
-                if (commentJson.getInt("parent") != 0) continue;
-
-                Comment comment = CommentParser.BuildComment(commentJson, articleId);
-                list.add(comment);
-                //loader.db.getCommentDao().insertAll(comment);
-
-                // получаем ответы на этот комментарий
-                String commentPath = "https://evo-lutio.livejournal.com/" + articleId + ".html"
-                        + "?thread=" + comment.getId() + "#t" + comment.getId();
-                String response = loader.LoadPage(commentPath);
-
-                // иногда приходит html ответ, иногда json ??
-
-                //JSONArray jsonComments = GetJsonComments(new Document(response));
-                //JSONObject childComments = new JSONObject(response);
-
-
-
-                // можно было бы решить эту задачу, рекурсивно вызывая GetComments,
-                // "рекурсия" всегда будет одного уровня, да и сама функция усложнится
-                // разнообразными проверками. Надо будет соптимизировать
-                JSONArray childCommensArray
-//                        = childComments.getJSONArray("comments");
-                        = GetJsonComments(Jsoup.parse(response));
-                int len2 = childCommensArray.length();
-
-                for (int j = 0; j < len2; j++) {
-                    JSONObject comJson2 = childCommensArray.getJSONObject(j);
-                    Comment comment2 = CommentParser.BuildComment(comJson2, articleId); // TODO: некоторые комментарии так и остаются неподгруженными
-
-                    list.add(comment2);
+                if (comment != null) {
+                    list.add(comment);
                 }
             }
         } catch (Throwable e) {

@@ -18,11 +18,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +43,7 @@ import okhttp3.Response;
 // https://stackoverflow.com/questions/31145811/android-how-to-get-response-string-from-callback-using-okhttp
 
 public class Loader { // implements Callback { // extends ILoader
-    private final static String root = "https://evo-lutio.livejournal.com/";
+    public final static String root = "https://evo-lutio.livejournal.com/";
     private OkHttpClient client;
     static AppDb db;
 
@@ -65,7 +68,6 @@ public class Loader { // implements Callback { // extends ILoader
     }
 
     public List<CompleteArticle> LoadNumber(int number, boolean fast) {
-        //page = LoadPage(root);
         String pagePath = root;
         String page;
         int total = number;
@@ -73,23 +75,16 @@ public class Loader { // implements Callback { // extends ILoader
         List<CompleteArticle> fullList = new ArrayList<>();
 
         while (true) {
-            page = LoadPage(pagePath); //entry-wrap js-emojis
+            page = LoadPage(pagePath);
             Document doc = Jsoup.parse(page);
-
-            //if (ArticleGroupParser.HasArticles(doc))
-            //    break;
 
             List<CompleteArticle> list = GetArticles(doc, total, fast);
             fullList.addAll(list);
             total = total - list.size();
 
-//             // FIXME: пока на стадии тестирования, даже не пытаемся лезть назад
-//            if (true) break;
-
             if (total <= 0)
                 break;
 
-            //if (ArticleGroupParser.CanPrev(doc))
             pagePath = ArticleGroupParser.PrevPath(doc);
             if (pagePath == "")
                 break;
@@ -107,12 +102,16 @@ public class Loader { // implements Callback { // extends ILoader
                 offset);
 
         for (Article artcl : articles) {
-            List<Comment> comts = GetComments(artcl.getId());
+            try {
+                List<Comment> comts = GetComments(artcl.getId());
 
-            carts.add(new CompleteArticle(
-                    artcl,
-                    comts
-            ));
+                carts.add(new CompleteArticle(
+                        artcl,
+                        comts
+                ));
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
         return carts;
     }
@@ -121,22 +120,6 @@ public class Loader { // implements Callback { // extends ILoader
         List<CompleteArticle> carts = new ArrayList<>();
 
         List<Article> articles = db.getArticleDao().getSomeArticles(count, offset);
-
-        for (Article artcl : articles) {
-            List<Comment> comts = GetComments(artcl.getId());
-
-            carts.add(new CompleteArticle(
-                    artcl,
-                    comts
-            ));
-        }
-        return carts;
-    }
-
-    public List<CompleteArticle> LoadFromDb() {
-        List<CompleteArticle> carts = new ArrayList<>();
-
-        List<Article> articles = db.getArticleDao().getAllArticles();
 
         for (Article artcl : articles) {
             List<Comment> comts = GetComments(artcl.getId());
@@ -277,11 +260,15 @@ public class Loader { // implements Callback { // extends ILoader
 
     private List<Comment> GetComments(int articleId, int parentId, int level) // recursive
     {
+        if (level > 0 && parentId == 0) return new ArrayList<>();
+
         CommentDao cdao = db.getCommentDao();
         List<Comment> base = cdao.getAllChildComments(articleId, parentId);
         List<Comment> result = new ArrayList<>();
         for (Comment com : base)
         {
+            if (com.getId() == 0) continue;
+
             com.setLevel(level);
             result.add(com);
 
@@ -294,23 +281,6 @@ public class Loader { // implements Callback { // extends ILoader
         }
         return result;
     }
-
-//    private List<Comment> GetCommentsHierarhic(int articleId, int parentId)
-//    {
-//        CommentDao cdao = db.getCommentDao();
-//        List<Comment> base = cdao.getAllChildComments(articleId, parentId);
-//
-//        if (base != null && base.size() > 0) {
-//            for (Comment com : base) {
-//                try {
-//                    com.responses = GetCommentsHierarhic(articleId, com.getId());
-//                } catch (Throwable t) {
-//                    t.printStackTrace();
-//                }
-//            }
-//        }
-//        return base;
-//    }
 
     public void SaveInDb(CompleteArticle cart)
     {
@@ -500,5 +470,45 @@ public class Loader { // implements Callback { // extends ILoader
         }
 
         return tags;
+    }
+
+    public int hasNewArticles()
+    {
+        String data = LoadPage("http://evo-lutio.livejournal.com/data/atom");
+            // результат можно кэшировать и использовать позжеы
+
+        Document doc = Jsoup.parse(data);
+        Article latest = db.getArticleDao().getLatest();
+        long date = latest.getDate().getTime();
+
+        Elements elms = doc.getElementsByTag("published");
+        if (elms == null || elms.size() == 0) return 0;
+
+        int count = 0;
+
+        // достаточно проверить крайний элемент
+        for (Element elm : elms) {
+            String dateString = elm.text();
+            dateString = dateString.substring(0, dateString.length() - 1) + "GMT";
+
+            Calendar cal = Calendar.getInstance();
+            // 2018-01-11T11:18:00+03:00
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz", Locale.ENGLISH);
+            try {
+                cal.setTime(sdf.parse(dateString));
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+            Date dateTime = cal.getTime();
+            long aTime = (dateTime.getTime() / 60000) * 60000; // округление до секунд (?)
+            // 10800 - 3 часа - из-за того, что буква Z не парс
+
+            if (aTime > date)
+                count++;
+            else
+                break;
+        }
+
+        return count;
     }
 }

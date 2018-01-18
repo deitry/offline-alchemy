@@ -3,6 +3,7 @@ package com.dmsvo.offlinealchemy.classes.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -100,6 +101,21 @@ public class ArticleViewActivity extends AppCompatActivity {
         }
 
         switch (id) {
+            case R.id.action_open_browser:
+            {
+                try {
+                    Intent browserIntent = new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(Loader.root + cart.article.getId() + ".html"));
+                    startActivity(browserIntent);
+                } catch (Throwable t) {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Не удалось открыть страницу!",
+                            Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                return true;
+            }
             case R.id.reload_article:
             {
                 Thread networking = new Thread(new Runnable() {

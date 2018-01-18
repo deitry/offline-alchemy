@@ -50,6 +50,7 @@ public class CommentParser {
             }
         } catch (Throwable e) {
             e.printStackTrace();
+            return null;
         }
         return comment;
     }

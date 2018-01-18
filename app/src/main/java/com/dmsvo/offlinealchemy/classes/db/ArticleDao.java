@@ -58,4 +58,8 @@ public interface ArticleDao {
     // Получение поста с конкретным тегом
     @Query("SELECT * FROM article WHERE tags LIKE :tag")
     List<Article> findByTag(String tag);
+
+    // Получение поста с крайней датой
+    @Query("SELECT * FROM article ORDER BY date DESC LIMIT 1")
+    Article getLatest();
 }
