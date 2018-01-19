@@ -67,8 +67,22 @@ public class Loader { // implements Callback { // extends ILoader
         instance = this;
     }
 
-    public List<CompleteArticle> LoadNumber(int number, boolean fast) {
-        String pagePath = root;
+    public List<CompleteArticle> LoadNumber(int number, boolean fast, long last) {
+        String pagePath;
+        if (last == 0)
+            pagePath = root;
+        else {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(new Date(last));
+            int year = cal.get(Calendar.YEAR);
+            int month = cal.get(Calendar.MONTH) + 1;
+            int day = cal.get(Calendar.DAY_OF_MONTH);
+
+            pagePath = root + year + "/"
+                    + ((month >= 10) ? month : "0" + month) + "/"
+                    + ((day >= 10) ? day : "0" + day) + "/";
+        }
+
         String page;
         int total = number;
 
@@ -130,10 +144,6 @@ public class Loader { // implements Callback { // extends ILoader
             ));
         }
         return carts;
-    }
-
-    public List<CompleteArticle> LoadAll() {
-        return null;
     }
 
     String LoadPage(String path) {
@@ -474,39 +484,31 @@ public class Loader { // implements Callback { // extends ILoader
 
     public int hasNewArticles()
     {
-        String data = LoadPage("http://evo-lutio.livejournal.com/data/atom");
+        String data = LoadPage("http://evo-lutio.livejournal.com/data/rss");
             // результат можно кэшировать и использовать позжеы
 
         Document doc = Jsoup.parse(data);
-        Article latest = db.getArticleDao().getLatest();
-        long date = latest.getDate().getTime();
+        //Article latest = db.getArticleDao().getLatest();
+        //long date = latest.getDate().getTime();
 
-        Elements elms = doc.getElementsByTag("published");
+        Elements elms = doc.getElementsByTag("guid");
         if (elms == null || elms.size() == 0) return 0;
 
         int count = 0;
 
         // достаточно проверить крайний элемент
         for (Element elm : elms) {
-            String dateString = elm.text();
-            dateString = dateString.substring(0, dateString.length() - 1) + "GMT";
-
-            Calendar cal = Calendar.getInstance();
-            // 2018-01-11T11:18:00+03:00
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz", Locale.ENGLISH);
             try {
-                cal.setTime(sdf.parse(dateString));
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            Date dateTime = cal.getTime();
-            long aTime = (dateTime.getTime() / 60000) * 60000; // округление до секунд (?)
-            // 10800 - 3 часа - из-за того, что буква Z не парс
+                String articlePath = elm.text();
+                int id = ArticleParser.GetIdFromPath(articlePath);
 
-            if (aTime > date)
-                count++;
-            else
-                break;
+                Article found = db.getArticleDao().getArticle(id);
+
+                if (found == null)
+                    count++;
+            } catch (Throwable t) {
+
+            }
         }
 
         return count;

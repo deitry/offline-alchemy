@@ -1,5 +1,6 @@
 package com.dmsvo.offlinealchemy.classes.runnables;
 
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
@@ -7,7 +8,10 @@ import com.dmsvo.offlinealchemy.classes.activities.Main2Activity;
 import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
 import com.dmsvo.offlinealchemy.classes.db.CommentDao;
 
+import java.util.Date;
 import java.util.List;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by DmSVo on 08.01.2018.
@@ -33,10 +37,39 @@ public class DownloadArticles implements Runnable {
 //            = activity.getLoader().LoadFromDb();
 
             if (fast) {
-                carts = activity.getLoader().LoadNumber(20, true);
+                SharedPreferences preferences = activity.getSharedPreferences(Main2Activity.PREF_NAME, MODE_PRIVATE);
+                SharedPreferences.Editor edit = preferences.edit();
+
+                // запоминаем дату последней статьи, чтобы при следующей загрузке начинать с неё
+                long lastTime = preferences.getLong(Main2Activity.LAST_DATE, 0);
+                Date lastDate;
+                if (lastTime > 0)
+                    lastDate = new Date(lastTime);
+                else
+                    lastDate = new Date();
+
+                int newCount = preferences.getInt(Main2Activity.NEW_COUNT, 0);
+
+                if (newCount > 0) {
+                    carts = activity.getLoader().LoadNumber(newCount, true, 0);
+                    carts.addAll(activity.getLoader().LoadNumber(20 - newCount, true, lastTime));
+                } else {
+                    carts = activity.getLoader().LoadNumber(20, true, lastTime);
+                }
+
+                for (CompleteArticle cart : carts)
+                {
+                    Date artDate = cart.article.getDate();
+                    if (artDate.before(lastDate)) {
+                        lastDate = artDate;
+                    }
+                }
+
+                edit.putLong(Main2Activity.LAST_DATE, lastDate.getTime());
+                edit.commit();
 //                carts.addAll(activity.getLoader().LoadNumber(20, true));
             } else {
-                carts = activity.getLoader().LoadNumber(1, false);
+                carts = activity.getLoader().LoadNumber(1, false, 0);
 //                carts.addAll(activity.getLoader().LoadNumber(1, false));
 //                    TestData.GetTestData(activity, adao, cdao);
             }

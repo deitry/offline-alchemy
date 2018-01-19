@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -57,6 +58,10 @@ public class Main2Activity extends AppCompatActivity
     public static final String OPEN_TAG = "com.dmsvo.offlinealchemy.TAG";
     public static final int I_OPEN_ARTICLE = 1;
     public static final int I_OPEN_TAGS = 2;
+
+    public static final String PREF_NAME = "preferences";
+    public static final String LAST_DATE = "edgeDate";
+    public static final String NEW_COUNT = "newCount";
 
     Handler handler;
     AppDb db;
@@ -235,6 +240,21 @@ public class Main2Activity extends AppCompatActivity
                         public void run() {
                             final int newArticles = Main2Activity.this.loader.hasNewArticles();
                             if (newArticles > 0) {
+
+                                SharedPreferences preferences =
+                                        Main2Activity.this.getSharedPreferences(
+                                                Main2Activity.PREF_NAME,
+                                                MODE_PRIVATE);
+                                SharedPreferences.Editor edit = preferences.edit();
+
+                                edit.putInt(Main2Activity.NEW_COUNT, newArticles);
+                                if (newArticles >= 50) {
+                                    // если скопилось слишком много новых статей, на всякий случай сбрасываем
+                                    // дату последней скачанной статьи, чтобы перезакачать все
+                                    edit.putLong(Main2Activity.LAST_DATE, 0);
+                                }
+                                edit.commit();
+
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
