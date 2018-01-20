@@ -30,7 +30,7 @@ public class ArticleParser {
     // не хотим создавать экземпляры
     private ArticleParser() {}
 
-    static int GetIdFromPath(String path)
+    public static int GetIdFromPath(String path)
     {
         return Integer.parseInt(path.substring(34, path.length() - 5));
     }

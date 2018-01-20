@@ -163,6 +163,33 @@ public class Loader { // implements Callback { // extends ILoader
         return body;
     }
 
+    public CompleteArticle GetArticle(int id) {
+        // если статья есть в бд и она загружена, возвращаем из бд
+        // комментарии подгружаем в любом случае
+        CompleteArticle cart;
+        Article found = db.getArticleDao().getArticle(id);
+        if (found != null) {
+            List<Comment> comments;
+
+            if (isOnline()) {
+                comments = ArticleParser.GetComments(
+                        LoadComments(id),
+                        id);
+            } else {
+                comments = GetComments(id);
+            }
+
+            cart = new CompleteArticle(found, comments);
+        } else {
+            cart = Loader.GetInstance().LoadArticle(root + id + ".html");
+        }
+
+        // сохраняем в бд. Если добавились комментарии - хорошо,
+        // если обновилось тело статьи - ещё лучше
+        SaveInDb(cart);
+        return cart;
+    }
+
     /**
      * Принимает на вход html-страницу, содержащую сколько-то статей,
      * возвращает список
@@ -262,12 +289,25 @@ public class Loader { // implements Callback { // extends ILoader
         return false;
     }
 
+
+    /**
+     * Возвращаем все комментарии из бд
+     * @param articleId
+     * @return
+     */
     public List<Comment> GetComments(int articleId)
     {
 //        return db.getCommentDao().getAllCommentsForArticle(articleId);
         return GetComments(articleId, 0, 0);
     }
 
+    /**
+     * Рекурсивно возвращаем все комментарии из бд
+     * @param articleId
+     * @param parentId
+     * @param level
+     * @return
+     */
     private List<Comment> GetComments(int articleId, int parentId, int level) // recursive
     {
         if (level > 0 && parentId == 0) return new ArrayList<>();
@@ -352,6 +392,11 @@ public class Loader { // implements Callback { // extends ILoader
         }
     }
 
+    /**
+     * Загружаем массив со всеми комментариями
+     * @param articleId
+     * @return
+     */
     JSONArray LoadComments(int articleId)
     {
         //https://evo-lutio.livejournal.com/evo-lutio/__rpc_get_thread?journal=evo_lutio&itemid=601527&flat=&skip=&media=&expand_all=1&_=1515533187677
