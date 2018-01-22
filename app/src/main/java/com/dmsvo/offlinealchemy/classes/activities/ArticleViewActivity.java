@@ -225,6 +225,15 @@ public class ArticleViewActivity extends AppCompatActivity {
                     }
                 }).start();
                 break;
+            case R.id.action_unread:
+                cart.article.setWasRead(0);
+                intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
+                break;
+            case R.id.action_fav:
+                int fav = cart.article.getFavorite() == 1 ? 0 : 1;
+                cart.article.setFavorite(fav);
+                intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
+                break;
             case R.id.homeAsUp:
                 super.onBackPressed();
                 break;

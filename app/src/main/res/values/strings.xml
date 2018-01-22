@@ -102,6 +102,8 @@
     <string name="action_clear_db">Очистить БД</string>
     <string name="action_reload_article">Перезагрузить статью</string>
     <string name="action_open_browser">Открыть в браузере</string>
+    <string name="action_unread">Пометить непрочтённым</string>
+    <string name="action_fav">Избранное</string>
     <string name="action_settings">Настройки</string>
     <string name="title_activity_settings">Settings</string>
 

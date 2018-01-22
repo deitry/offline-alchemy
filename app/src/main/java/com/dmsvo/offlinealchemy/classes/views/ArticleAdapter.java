@@ -1,6 +1,8 @@
 package com.dmsvo.offlinealchemy.classes.views;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.TextView;
 
 import com.dmsvo.offlinealchemy.R;
 import com.dmsvo.offlinealchemy.classes.base.Article;
+import com.dmsvo.offlinealchemy.classes.base.Comment;
 import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
 import com.dmsvo.offlinealchemy.classes.db.Converters;
 
@@ -21,11 +24,11 @@ import java.util.List;
 
 public class ArticleAdapter extends BaseAdapter {
 
-    Context context;
+    Activity context;
     List<CompleteArticle> data;
     private static LayoutInflater inflater = null;
 
-    public ArticleAdapter(Context context, List<CompleteArticle> articles)
+    public ArticleAdapter(Activity context, List<CompleteArticle> articles)
     {
         this.context = context;
         this.data = articles;
@@ -84,6 +87,13 @@ public class ArticleAdapter extends BaseAdapter {
             header.setTypeface(null, Typeface.NORMAL);
         }
 
+        boolean fav = article.getFavorite() == 1;
+        if (fav) {
+            header.setBackgroundColor(context.getResources().getColor(R.color.accentedDark));
+        } else {
+            header.setBackgroundColor(context.getResources().getColor(R.color.transparent));
+        }
+
         TextView date = (TextView) vi.findViewById(R.id.article_date);
         date.setText(article.getDate().toString());
 
@@ -91,7 +101,7 @@ public class ArticleAdapter extends BaseAdapter {
         if (cart.comments != null) {
             commentsView.setText("Комментариев: " + cart.comments.size());
         } else {
-            commentsView.setText("Комментариев: неизвестно");
+            commentsView.setText("Комментариев ~ " + cart.article.getCommentCount());
         }
         // TODO: сделать в виде списка кнопок?
         TextView tagsView = vi.findViewById(R.id.article_tags);

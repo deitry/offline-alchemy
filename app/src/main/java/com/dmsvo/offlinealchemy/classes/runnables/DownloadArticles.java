@@ -7,6 +7,7 @@ import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
 import com.dmsvo.offlinealchemy.classes.activities.Main2Activity;
 import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
 import com.dmsvo.offlinealchemy.classes.db.CommentDao;
+import com.dmsvo.offlinealchemy.classes.loader.Loader;
 
 import java.util.Date;
 import java.util.List;
@@ -52,9 +53,9 @@ public class DownloadArticles implements Runnable {
 
                 if (newCount > 0) {
                     carts = activity.getLoader().LoadNumber(newCount, true, 0);
-                    carts.addAll(activity.getLoader().LoadNumber(20 - newCount, true, lastTime));
+                    carts.addAll(activity.getLoader().LoadNumber(Loader.BASE_CNT - newCount, true, lastTime));
                 } else {
-                    carts = activity.getLoader().LoadNumber(20, true, lastTime);
+                    carts = activity.getLoader().LoadNumber(Loader.BASE_CNT, true, lastTime);
                 }
 
                 for (CompleteArticle cart : carts)

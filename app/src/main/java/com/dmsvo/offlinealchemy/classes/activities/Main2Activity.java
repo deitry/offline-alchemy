@@ -122,7 +122,7 @@ public class Main2Activity extends AppCompatActivity
 
 //        this.onNavigateUp();
 
-        Thread thread = new Thread(new LoadFromDb(this, 7, 0));
+        Thread thread = new Thread(new LoadFromDb(this, Loader.BASE_CNT, 0));
         thread.start();
     }
 
@@ -144,10 +144,6 @@ public class Main2Activity extends AppCompatActivity
                         item.article = result.article;
                         item.comments = result.comments;
 
-//                        adapter.setItem(i, result);
-//                        articlesView.getItemAtPosition(i);
-
-
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -155,17 +151,9 @@ public class Main2Activity extends AppCompatActivity
                             }
                         }).start();
 
-//                        View vi = adapter.getView(i, null, null);
-
                         break;
-//                        articlesView.setAdapter(null);
-//                        articlesView.setAdapter(adapter);
-
-//                        adapter.;
                     }
                 }
-
-//                articlesView.invalidateViews();
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -190,9 +178,10 @@ public class Main2Activity extends AppCompatActivity
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+
                         final List<CompleteArticle> articles = loader.LoadFromDb(
                                 tagToOpen,
-                                20,
+                                Loader.BASE_CNT,
                                 0);
 
                         runOnUiThread(new Runnable() {
@@ -440,7 +429,7 @@ public class Main2Activity extends AppCompatActivity
                         articlesView.setAdapter(null);
                     }
                 })
-                        .setNegativeButton("Отмена", null)                        //Do nothing on no
+                        .setNegativeButton("Отмена", null)   //Do nothing on no
                         .show();
 
                 return true;
@@ -468,7 +457,7 @@ public class Main2Activity extends AppCompatActivity
             ListView articlesView = findViewById(R.id.articleslist);
             articlesView.setAdapter(null);
 
-            Thread thread = new Thread(new LoadFromDb(this, 20, 0));
+            Thread thread = new Thread(new LoadFromDb(this, Loader.BASE_CNT, 0));
             thread.start();
 
         } else if (id == R.id.nav_random) {
@@ -542,7 +531,7 @@ public class Main2Activity extends AppCompatActivity
 
         // FIXME: вообще говоря, оффсет для чтения из базы данных и текущее количество
         // записей - это скорее всего немного разные вещи. Попробуем так
-        new Thread(new LoadFromDb(this,20,cur)).start();
+        new Thread(new LoadFromDb(this,Loader.BASE_CNT, cur)).start();
         //Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
     }
 

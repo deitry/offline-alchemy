@@ -52,8 +52,38 @@ public class UpdateListView implements Runnable {
                         if (cart != null) {
                             cart.article.setWasRead(1);
 
-                            intent.putExtra(activity.OPEN_ARTICLE, cart);
-                            activity.startActivityForResult(intent,1);
+                            if (cart.comments == null)
+                            {
+                                // загружаем комментарии из бд
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ProgressBar pbar = activity.findViewById(R.id.progressBar);
+                                                pbar.setVisibility(View.VISIBLE);
+                                            }
+                                        });
+
+                                        cart.comments = activity.getLoader().GetComments(cart.article.getId());
+                                        intent.putExtra(activity.OPEN_ARTICLE, cart);
+
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ProgressBar pbar = activity.findViewById(R.id.progressBar);
+                                                pbar.setVisibility(View.INVISIBLE);
+                                            }
+                                        });
+
+                                        activity.startActivityForResult(intent,1);
+                                    }
+                                }).start();
+                            } else {
+                                intent.putExtra(activity.OPEN_ARTICLE, cart);
+                                activity.startActivityForResult(intent,1);
+                            }
                         }
                     }
                 });

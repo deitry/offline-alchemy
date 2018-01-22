@@ -59,8 +59,15 @@ public class TagsActivity extends AppCompatActivity {
 
                 final List<Tag> tags = tdao.getAllTags();
                 Collections.sort(tags);
-
-//                final Set<Tag> tags = new HashSet<>(tagsList);
+                tags.add(0,
+                        new Tag("Непрочитанные",
+                                Loader.GetAppDb().getArticleDao().getUnreadCount()));
+                tags.add(0,
+                        new Tag("Незагруженные",
+                                Loader.GetAppDb().getArticleDao().getUnloadCount()));
+                tags.add(0,
+                        new Tag("Избранные",
+                                Loader.GetAppDb().getArticleDao().getFavoriteCount()));
 
                 // заполняем листвью тегами
                 runOnUiThread(new Runnable() {

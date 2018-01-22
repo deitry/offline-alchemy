@@ -23,10 +23,10 @@ public class CompleteArticle implements Serializable {
     public CompleteArticle(Article article, List<Comment> comments)
     {
         this.article = article;
-        if (comments != null) {
+//        if (comments != null) {
             this.comments = comments;
-        } else {
-            this.comments = new ArrayList<>();
-        }
+//        } else {
+//            this.comments = new ArrayList<>();
+//        }
     }
 }

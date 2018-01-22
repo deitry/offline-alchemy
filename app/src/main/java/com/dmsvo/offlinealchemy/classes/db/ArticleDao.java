@@ -40,6 +40,18 @@ public interface ArticleDao {
     @Query("SELECT * FROM article WHERE tags LIKE :tag ORDER BY date DESC LIMIT :count OFFSET :offset")
     List<Article> getSomeArticles(String tag, int count, int offset);
 
+    // Получение части постов из бд с определённым тегом
+    @Query("SELECT * FROM article WHERE tags LIKE :tag AND wasRead = 0 ORDER BY date DESC LIMIT :count OFFSET :offset")
+    List<Article> getSomeUnreadArticles(String tag, int count, int offset);
+
+    // Получение части постов из бд с определённым тегом
+    @Query("SELECT * FROM article WHERE tags LIKE :tag AND loaded = 0 ORDER BY date DESC LIMIT :count OFFSET :offset")
+    List<Article> getSomeUnloadedArticles(String tag, int count, int offset);
+
+    // Получение части постов из бд с определённым тегом
+    @Query("SELECT * FROM article WHERE tags LIKE :tag AND favorite = 1 ORDER BY date DESC LIMIT :count OFFSET :offset")
+    List<Article> getSomeFavoriteArticles(String tag, int count, int offset);
+
     // Получение части постов из бд
     @Query("SELECT * FROM article ORDER BY date DESC LIMIT :count OFFSET :offset")
     List<Article> getSomeArticles(int count, int offset);
@@ -50,6 +62,18 @@ public interface ArticleDao {
 
     @Query("SELECT COUNT(*) FROM article")
     int getCount();
+
+    @Query("SELECT COUNT(*) FROM article WHERE wasRead = 0")
+    int getUnreadCount();
+
+    @Query("SELECT COUNT(*) FROM article WHERE loaded = 0")
+    int getUnloadCount();
+
+    @Query("SELECT COUNT(*) FROM article WHERE favorite = 1")
+    int getFavoriteCount();
+
+    @Query("SELECT COUNT(*) FROM comment WHERE articleId = :id")
+    int getCommentsCount(int id);
 
     // Получение поста с конкретным номером в бд
     @Query("SELECT * FROM article LIMIT 1 OFFSET :offset")
@@ -62,4 +86,6 @@ public interface ArticleDao {
     // Получение поста с крайней датой
     @Query("SELECT * FROM article ORDER BY date DESC LIMIT 1")
     Article getLatest();
+
+
 }

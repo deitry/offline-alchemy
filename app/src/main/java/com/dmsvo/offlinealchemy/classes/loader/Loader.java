@@ -49,6 +49,8 @@ public class Loader { // implements Callback { // extends ILoader
 
     static Loader instance = null;
 
+    public static final int BASE_CNT = 7;
+
     static public Loader GetInstance() { return instance; }
     static public AppDb GetAppDb() { return db; }
     public String getRoot() { return root; }
@@ -72,6 +74,9 @@ public class Loader { // implements Callback { // extends ILoader
         if (last == 0)
             pagePath = root;
         else {
+            // можно оптимизировать - к первым 500 можно обращаться через глагне / ?skip=300
+            // тогда на странице загружаются по ~50 статей
+
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date(last));
             int year = cal.get(Calendar.YEAR);
@@ -109,11 +114,30 @@ public class Loader { // implements Callback { // extends ILoader
 
     public List<CompleteArticle> LoadFromDb(String tag, int count, int offset) {
         List<CompleteArticle> carts = new ArrayList<>();
+        List<Article> articles;
 
-        List<Article> articles = db.getArticleDao().getSomeArticles(
-                ArticleParser.Tag(tag),
-                count,
-                offset);
+        if (tag.equals("Непрочитанные")) {
+            articles = db.getArticleDao().getSomeUnreadArticles(
+                    ArticleParser.Tag(""),
+                    count,
+                    offset);
+        } else if (tag.equals("Незагруженные")) {
+            articles = db.getArticleDao().getSomeUnloadedArticles(
+                    ArticleParser.Tag(""),
+                    count,
+                    offset);
+        } else if (tag.equals("Избранные")) {
+            articles = db.getArticleDao().getSomeFavoriteArticles(
+                    ArticleParser.Tag(""),
+                    count,
+                    offset);
+        } else {
+            articles = db.getArticleDao().getSomeArticles(
+                    ArticleParser.Tag(tag),
+                    count,
+                    offset);
+        }
+
 
         for (Article artcl : articles) {
             try {
@@ -136,11 +160,18 @@ public class Loader { // implements Callback { // extends ILoader
         List<Article> articles = db.getArticleDao().getSomeArticles(count, offset);
 
         for (Article artcl : articles) {
-            List<Comment> comts = GetComments(artcl.getId());
+            //List<Comment> comts = GetComments(artcl.getId());
+            try {
+                int cnt = db.getCommentDao().getCommentCount(artcl.getId());
+                artcl.setCommentCount(cnt);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
 
             carts.add(new CompleteArticle(
                     artcl,
-                    comts
+                    null // comts
+                    // не добавляем комментарии по умолчанию, подгружаем их позже
             ));
         }
         return carts;
@@ -202,12 +233,6 @@ public class Loader { // implements Callback { // extends ILoader
         List<CompleteArticle> list = new ArrayList<> ();
 
         // проходимся по странице и находим id всех статей
-//        Elements articles = page.getElementsByTag("article");
-//        for (Element article : articles)
-//        {
-//            Article obj = LoadArticle(article);
-//            list.add(obj);
-//        }
 
         // находим контейнеры с описаниями статей
         Elements elms = document.getElementsByClass("entry-wrap js-emojis");
@@ -298,7 +323,8 @@ public class Loader { // implements Callback { // extends ILoader
     public List<Comment> GetComments(int articleId)
     {
 //        return db.getCommentDao().getAllCommentsForArticle(articleId);
-        return GetComments(articleId, 0, 0);
+        List<Comment> comts = GetComments(articleId, 0, 0);
+        return comts;
     }
 
     /**
@@ -338,6 +364,10 @@ public class Loader { // implements Callback { // extends ILoader
 
         Article found = adao.getArticle(cart.article.getId()); //ArticleParser.GetIdFromPath(path)
         try {
+            if (cart.comments != null) {
+                cart.article.setCommentCount(cart.comments.size());
+            }
+
             if (found == null) {
                 adao.insertAll(cart.article);
             } else {

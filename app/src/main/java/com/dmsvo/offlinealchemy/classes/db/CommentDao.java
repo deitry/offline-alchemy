@@ -32,10 +32,6 @@ public interface CommentDao {
     @Query("DELETE FROM comment")
     void clearComments();
 
-    // Получение всех Person из бд
-    @Query("SELECT * FROM comment")
-    List<Comment> getAllPeople();
-
     // Получение всех комментариев из бд с условием
     @Query("SELECT * FROM comment WHERE articleid LIKE :articleId")
     List<Comment> getAllCommentsForArticle(int articleId);
@@ -47,4 +43,8 @@ public interface CommentDao {
     // Получение всех комментариев из бд с условием
     @Query("SELECT * FROM comment WHERE articleId = :articleId AND parentId = :parentId")
     List<Comment> getAllChildComments(int articleId, int parentId);
+
+    // Получение всех комментариев из бд с условием
+    @Query("SELECT COUNT(*) FROM comment WHERE articleId = :articleId")
+    int getCommentCount(int articleId);
 }
