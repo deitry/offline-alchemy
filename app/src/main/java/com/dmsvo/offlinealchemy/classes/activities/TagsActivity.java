@@ -81,10 +81,15 @@ public class TagsActivity extends AppCompatActivity {
                             @Override
                             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                                 Tag tag = (Tag) adapterView.getItemAtPosition(i);
-                                intent.putExtra(Main2Activity.OPEN_TAG,
+
+                                Intent newIntent = new Intent(
+                                        TagsActivity.this,
+                                        Main2Activity.class
+                                );
+                                newIntent.putExtra(Main2Activity.OPEN_TAG,
                                         tag.getData());
-                                setResult(Activity.RESULT_OK, intent);
-                                finish();
+
+                                TagsActivity.this.startActivity(newIntent);
                             }
                         });
                         tagsView.setAdapter(tagAdapter);

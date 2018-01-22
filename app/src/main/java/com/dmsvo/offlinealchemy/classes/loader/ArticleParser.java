@@ -32,7 +32,13 @@ public class ArticleParser {
 
     public static int GetIdFromPath(String path)
     {
-        return Integer.parseInt(path.substring(34, path.length() - 5));
+        String baseEnd = ".com/";
+        int iEnd = path.indexOf(baseEnd);
+
+        return Integer.parseInt(
+                path.substring(
+                        iEnd + baseEnd.length(),
+                        path.length() - 5));
     }
 
     /**
@@ -62,8 +68,12 @@ public class ArticleParser {
         Element wrapper = elms.first();
 
         elms = wrapper.getElementsByTag("h1");
-        if (elms == null || elms.size() == 0) return null;
-        String title = elms.first().text();
+        String title;
+        if (elms != null && elms.size() > 0) {
+            title = elms.first().text();
+        } else {
+            title = "(no subject)";
+        }
 
         elms = wrapper.getElementsByTag("article");
         if (elms == null || elms.size() == 0) return null;
@@ -114,7 +124,7 @@ public class ArticleParser {
             dateTime = calendar.getTime();
         }
 
-        List<Comment> comments = GetComments(loader.LoadComments(id), id);
+        List<Comment> comments = loader.LoadComments(id);
 
         Article artcl = new Article();
         artcl.setName(title);
@@ -124,6 +134,10 @@ public class ArticleParser {
         artcl.setDate(dateTime);
         artcl.setCommentsIds(comments);
         artcl.setLoaded(1);
+
+        if (comments != null) {
+            artcl.setCommentCount(comments.size());
+        }
 
         CompleteArticle complete = new CompleteArticle(artcl, comments);
 

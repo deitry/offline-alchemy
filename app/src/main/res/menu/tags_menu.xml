@@ -4,9 +4,9 @@
     android:background="@color/dark">
 
     <item
-        android:id="@+id/action_refresh_list"
+        android:id="@+id/action_refresh_tags"
         android:orderInCategory="100"
-        android:title="@string/action_refresh_list"
+        android:title="@string/action_refresh_tags"
         app:showAsAction="never" />
 
 </menu>

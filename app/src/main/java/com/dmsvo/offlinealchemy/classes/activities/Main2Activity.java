@@ -120,10 +120,22 @@ public class Main2Activity extends AppCompatActivity
         handler = new Handler(Looper.getMainLooper());
         loader = new Loader(db);
 
-//        this.onNavigateUp();
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(OPEN_TAG)) {
+            try {
+                tagToOpen = intent.getStringExtra(OPEN_TAG);
+                if (tagToOpen != null & !tagToOpen.equals("")) {
+                    this.setTitle(tagToOpen);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
 
-        Thread thread = new Thread(new LoadFromDb(this, Loader.BASE_CNT, 0));
-        thread.start();
+        ProgressBar pbar = findViewById(R.id.progressBar);
+        pbar.setVisibility(View.VISIBLE);
+
+        new Thread(new LoadFromDb(this, Loader.BASE_CNT, 0)).start();
     }
 
     @Override
@@ -165,39 +177,6 @@ public class Main2Activity extends AppCompatActivity
 
             if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
-            }
-        } else if (requestCode == I_OPEN_TAGS) {
-            if (data != null) {
-                tagToOpen = data.getStringExtra(OPEN_TAG);
-            }
-
-            if (tagToOpen != null & !tagToOpen.equals("")) {
-                ProgressBar pbar = findViewById(R.id.progressBar);
-                pbar.setVisibility(View.VISIBLE);
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        final List<CompleteArticle> articles = loader.LoadFromDb(
-                                tagToOpen,
-                                Loader.BASE_CNT,
-                                0);
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ListView articlesView = findViewById(R.id.articleslist);
-                                articlesView.setAdapter(
-                                        new ArticleAdapter(
-                                                Main2Activity.this,
-                                                articles));
-                                ProgressBar pbar = findViewById(R.id.progressBar);
-                                pbar.setVisibility(View.INVISIBLE);
-                            }
-                        });
-                    }
-                }).start();
             }
         }
     }
@@ -500,9 +479,8 @@ public class Main2Activity extends AppCompatActivity
                             Main2Activity.this,
                             TagsActivity.class);
                     intent.putExtra("search_type", 1);
-                    Main2Activity.this.startActivityForResult(
-                            intent,
-                            2);
+                    Main2Activity.this.startActivity(   // requestCode = 2
+                            intent);
                 }
             }).start();
 

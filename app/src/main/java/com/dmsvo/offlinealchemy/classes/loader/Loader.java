@@ -141,11 +141,17 @@ public class Loader { // implements Callback { // extends ILoader
 
         for (Article artcl : articles) {
             try {
-                List<Comment> comts = GetComments(artcl.getId());
+                //List<Comment> comts = GetComments(artcl.getId());
+                try {
+                    int cnt = db.getCommentDao().getCommentCount(artcl.getId());
+                    artcl.setCommentCount(cnt);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
 
                 carts.add(new CompleteArticle(
                         artcl,
-                        comts
+                        null
                 ));
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -203,16 +209,14 @@ public class Loader { // implements Callback { // extends ILoader
             List<Comment> comments;
 
             if (isOnline()) {
-                comments = ArticleParser.GetComments(
-                        LoadComments(id),
-                        id);
+                comments = LoadComments(id);
             } else {
                 comments = GetComments(id);
             }
 
             cart = new CompleteArticle(found, comments);
         } else {
-            cart = Loader.GetInstance().LoadArticle(root + id + ".html");
+            cart = LoadArticle(root + id + ".html");
         }
 
         // сохраняем в бд. Если добавились комментарии - хорошо,
@@ -239,7 +243,7 @@ public class Loader { // implements Callback { // extends ILoader
         int i = 0;
         for (Element el : elms)
         {
-            if (i == number) break; // FIXME: на стадии отладки, чтобы не очень тормозило
+            if (i == number) break;
 
             // проверяем, есть ли статья с таким id в бд
             // если нету - скачиваем
@@ -257,7 +261,7 @@ public class Loader { // implements Callback { // extends ILoader
                 continue;
             }
 
-            CompleteArticle artcl = null;
+            CompleteArticle artcl;
 
             if (fast) {
                 artcl = ArticleParser.BuildArticleFast(Jsoup.parse(el.html()));
@@ -360,6 +364,8 @@ public class Loader { // implements Callback { // extends ILoader
 
     public void SaveInDb(CompleteArticle cart)
     {
+        if (cart == null) return;
+
         ArticleDao adao = db.getArticleDao();
 
         Article found = adao.getArticle(cart.article.getId()); //ArticleParser.GetIdFromPath(path)
@@ -422,12 +428,23 @@ public class Loader { // implements Callback { // extends ILoader
         }
     }
 
+    public List<Comment> LoadComments(int articleId) {
+        List<Comment> comts = ArticleParser.GetComments(
+                LoadCommentsJson(articleId),
+                articleId);
+
+        SaveCommentsInDb(comts);
+        comts = GetComments(articleId);
+        return comts;
+    }
+
+
     /**
      * Загружаем массив со всеми комментариями
      * @param articleId
      * @return
      */
-    JSONArray LoadComments(int articleId)
+    JSONArray LoadCommentsJson(int articleId)
     {
         //https://evo-lutio.livejournal.com/evo-lutio/__rpc_get_thread?journal=evo_lutio&itemid=601527&flat=&skip=&media=&expand_all=1&_=1515533187677
         // https://evo-lutio.livejournal.com/evo-lutio/__rpc_get_thread?
@@ -584,6 +601,42 @@ public class Loader { // implements Callback { // extends ILoader
             } catch (Throwable t) {
 
             }
+        }
+
+        return count;
+    }
+
+    public int hasNewComments(int articleId) {
+        int count = 0;
+        String basePath = "https://evo-lutio.livejournal.com/evo-lutio/__rpc_get_thread";
+
+        HttpUrl url = HttpUrl.parse(basePath).newBuilder()
+                .addQueryParameter("journal","evo_lutio")
+                .addQueryParameter("itemid",articleId + "")
+                .addQueryParameter("flat","")
+                .addQueryParameter("skip","")
+                .addQueryParameter("media","")
+                .addQueryParameter("expand_all","0")
+                .addQueryParameter("_", new Date().getTime()/1000 + "")
+                .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        String body = "";
+
+        try {
+            Response response = client.newCall(request).execute();
+
+            body = response.body().string();
+            JSONObject json = new JSONObject(body);
+
+            if (json != null) {
+                count = json.optInt("replycount"); // репликант, ха-ха, зовите Декарда
+            }
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
         }
 
         return count;

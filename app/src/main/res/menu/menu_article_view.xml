@@ -5,6 +5,12 @@
     android:background="@color/dark">
 
     <item
+        android:id="@+id/action_has_new_comments"
+        android:orderInCategory="100"
+        android:title="@string/action_has_new_comments"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/reload_article"
         android:orderInCategory="100"
         android:title="@string/action_reload_article"

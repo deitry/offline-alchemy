@@ -48,6 +48,7 @@ public class ArticleViewActivity extends AppCompatActivity {
     private CompleteArticle cart;
     Handler handler;
     Intent intent;
+    String currentPath = "";
 
     public Handler getHandler() { return handler; }
 
@@ -86,14 +87,17 @@ public class ArticleViewActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         String path = link.toString();
+                        currentPath = path;
+
                         int id = ArticleParser.GetIdFromPath(path);
 
                         cart = Loader.GetInstance().GetArticle(id);
 
-                            runOnUiThread(new Runnable() {
-                                @Override
+                        runOnUiThread(new Runnable() {
+                            @Override
                             public void run() {
                                 updateArticle();
+                                checkNewComments();
                                 ProgressBar pbar = findViewById(R.id.progressBar2);
                                 pbar.setVisibility(View.INVISIBLE);
                             }
@@ -102,6 +106,7 @@ public class ArticleViewActivity extends AppCompatActivity {
                 }).start();
             } else {
                 updateArticle();
+                checkNewComments();
                 setResult(Activity.RESULT_OK, intent);
             }
 
@@ -136,9 +141,15 @@ public class ArticleViewActivity extends AppCompatActivity {
             case R.id.action_open_browser:
             {
                 try {
+                    String path;
+                    if (cart == null)
+                        path = currentPath;
+                    else
+                        path = Loader.root + cart.article.getId() + ".html";
+
                     Intent browserIntent = new Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse(Loader.root + cart.article.getId() + ".html"));
+                            Uri.parse(path));
                     startActivity(browserIntent);
                 } catch (Throwable t) {
                     Toast toast = Toast.makeText(getApplicationContext(),
@@ -150,6 +161,8 @@ public class ArticleViewActivity extends AppCompatActivity {
             }
             case R.id.reload_article:
             {
+                if (cart == null) break;
+
                 Thread networking = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -170,6 +183,7 @@ public class ArticleViewActivity extends AppCompatActivity {
                                     + ".html");
 
                         if (newVersion != null) {
+                            newVersion.article.setFavorite(cart.article.getFavorite());
                             cart = newVersion;
 
 //                            loader.SaveInDb(cart);
@@ -208,28 +222,23 @@ public class ArticleViewActivity extends AppCompatActivity {
                 pbar.setVisibility(View.VISIBLE);
 
                 networking.start();
-            }
-
                 break;
+            }
             case R.id.action_settings:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                CollapsingToolbarLayout appBar = ArticleViewActivity.this.findViewById(R.id.toolbar_layout);
-                                appBar.setTitle("Рандом " + new Random().nextInt(10));
-                            }
-                        });
-                    }
-                }).start();
+                break;
+            case R.id.action_has_new_comments:
+                checkNewComments();
                 break;
             case R.id.action_unread:
-                cart.article.setWasRead(0);
+                if (cart == null) break;
+
+                int read = cart.article.getWasRead() == 1 ? 0 : 1;
+                cart.article.setWasRead(read);
                 intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
                 break;
             case R.id.action_fav:
+                if (cart == null) break;
+
                 int fav = cart.article.getFavorite() == 1 ? 0 : 1;
                 cart.article.setFavorite(fav);
                 intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
@@ -248,6 +257,39 @@ public class ArticleViewActivity extends AppCompatActivity {
         return true;
     }
 
+    void checkNewComments() {
+        if (cart == null) return;
+
+        try {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Loader loader = Loader.GetInstance();
+                    if (loader.isOnline() == false) return;
+
+                    int commentsCnt = loader.hasNewComments(cart.article.getId());
+                    int loadedCnt = cart.article.getCommentCount();
+                    ArticleViewActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String msg = (commentsCnt > loadedCnt)
+                                    ? "Доступны новые комментарии: " + (commentsCnt - loadedCnt) + "!"
+                                    : "Нет новых комментариев!";
+
+                            Toast toast = Toast.makeText(getApplicationContext(),
+                                    msg,
+                                    Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    });
+
+                }
+            }).start();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
     void updateArticle()
     {
         ActionBar actionBar = getSupportActionBar();
@@ -255,20 +297,42 @@ public class ArticleViewActivity extends AppCompatActivity {
         {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
+            CollapsingToolbarLayout appBar = ArticleViewActivity.this.findViewById(R.id.toolbar_layout);
             if (cart != null) {
-                CollapsingToolbarLayout appBar = ArticleViewActivity.this.findViewById(R.id.toolbar_layout);
-                appBar.setTitle(cart.article.getName());
+                String name = cart.article.getName();
+
+                if (name.length() > 90) {
+                    appBar.setExpandedTitleTextAppearance(
+                            R.style.TextAppearance_AppCompat_Medium);
+                } else {
+                    appBar.setExpandedTitleTextAppearance(
+                            R.style.TextAppearance_AppCompat_Large);
+                }
+                appBar.setTitle(name);
+            } else {
+                appBar.setTitle("Страница недоступна");
             }
         }
 
         TextView commentsHeader = findViewById(R.id.comments_header);
+        TextView bodyView = findViewById(R.id.article_body);
+
+        if (cart == null) {
+            commentsHeader.setText("");
+            bodyView.setText(Html.fromHtml(
+                    "Страница недоступна или удалена<br/><br/>"
+                    + currentPath));
+            bodyView.setMovementMethod(LinkMovementMethod.getInstance());
+
+            return;
+        }
+
         commentsHeader.setText("Комментарии: " + cart.comments.size());
 
-        TextView bodyView = findViewById(R.id.article_body);
         bodyView.setText(Html.fromHtml(cart.article.getBody()));
         bodyView.setMovementMethod(LinkMovementMethod.getInstance());
 
-        if (cart != null) {
+        if (cart.comments != null) {
             CommentAdapter adapter = new CommentAdapter(
                     ArticleViewActivity.this,
                     cart.comments);

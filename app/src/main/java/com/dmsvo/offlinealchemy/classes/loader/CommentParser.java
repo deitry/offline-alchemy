@@ -33,7 +33,7 @@ public class CommentParser {
             comment.setId(json.getInt("dtalkid")); // thread
             comment.setAuthor(json.getString("uname"));
             comment.setParentId(json.optInt("parent"));
-            //comment.setLevel(json.getInt("level"));
+//            comment.setLevel(json.optInt("level",0));
 
             // чтение даты из строки возможно только из строки ctime
 //            Calendar cal = Calendar.getInstance();
