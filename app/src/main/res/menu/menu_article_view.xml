@@ -23,15 +23,15 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_fav"
+        android:id="@+id/action_article_set_favorite"
         android:orderInCategory="100"
-        android:title="@string/action_fav"
+        android:title="@string/action_set_favorite"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_unread"
         android:orderInCategory="100"
-        android:title="@string/action_unread"
+        android:title="@string/action_set_not_read"
         app:showAsAction="never" />
 
     <item

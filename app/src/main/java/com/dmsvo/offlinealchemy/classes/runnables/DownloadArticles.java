@@ -36,10 +36,12 @@ public class DownloadArticles implements Runnable {
 
             List<CompleteArticle> carts;
 //            = activity.getLoader().LoadFromDb();
+            SharedPreferences preferences = activity.getSharedPreferences(Main2Activity.PREF_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor edit = preferences.edit();
+
+            int newCount = preferences.getInt(Main2Activity.NEW_COUNT, 0);
 
             if (fast) {
-                SharedPreferences preferences = activity.getSharedPreferences(Main2Activity.PREF_NAME, MODE_PRIVATE);
-                SharedPreferences.Editor edit = preferences.edit();
 
                 // запоминаем дату последней статьи, чтобы при следующей загрузке начинать с неё
                 long lastTime = preferences.getLong(Main2Activity.LAST_DATE, 0);
@@ -49,10 +51,11 @@ public class DownloadArticles implements Runnable {
                 else
                     lastDate = new Date();
 
-                int newCount = preferences.getInt(Main2Activity.NEW_COUNT, 0);
-
                 if (newCount > 0) {
                     carts = activity.getLoader().LoadNumber(newCount, true, 0);
+                    edit.putInt(Main2Activity.NEW_COUNT, newCount - carts.size());
+                    edit.commit();
+
                     carts.addAll(activity.getLoader().LoadNumber(Loader.BASE_CNT - newCount, true, lastTime));
                 } else {
                     carts = activity.getLoader().LoadNumber(Loader.BASE_CNT, true, lastTime);
@@ -68,11 +71,14 @@ public class DownloadArticles implements Runnable {
 
                 edit.putLong(Main2Activity.LAST_DATE, lastDate.getTime());
                 edit.commit();
-//                carts.addAll(activity.getLoader().LoadNumber(20, true));
             } else {
                 carts = activity.getLoader().LoadNumber(1, false, 0);
 //                carts.addAll(activity.getLoader().LoadNumber(1, false));
 //                    TestData.GetTestData(activity, adao, cdao);
+                if (newCount > 0) {
+                    edit.putInt(Main2Activity.NEW_COUNT, newCount - carts.size());
+                    edit.commit();
+                }
             }
 
             activity.getHandler().post(new UpdateListView(activity,

@@ -13,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.view.ContextMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -132,6 +134,9 @@ public class Main2Activity extends AppCompatActivity
             }
         }
 
+//        ListView articlesView = Main2Activity.this.findViewById(R.id.articleslist);
+//        registerForContextMenu(articlesView);
+
         ProgressBar pbar = findViewById(R.id.progressBar);
         pbar.setVisibility(View.VISIBLE);
 
@@ -182,6 +187,44 @@ public class Main2Activity extends AppCompatActivity
     }
 
     @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                       ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId()==R.id.articleslist) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+
+            TextView menuHeader = new TextView(this);
+            menuHeader.setTextSize(20.0f);
+            menuHeader.setText("Контекстное меню");
+//            menuHeader.setTextAppearance(R.style.TextAppearance_AppCompat_Large);
+
+            menuHeader.setBackgroundColor(getResources().getColor(R.color.dark));
+//            menu.setHeaderTitle("Контекстное меню");
+
+            menu.setHeaderView(menuHeader);
+            menu.add(menu.NONE, 0,0,"В избранное");
+            menu.add(menu.NONE, 1,1,"Прочитанное");
+            menu.add(menu.NONE, 2,2,"Удалить");
+
+//            String[] menuItems = getResources().getStringArray(R.array.);
+//            for (int i = 0; i<menuItems.length; i++) {
+//                menu.add(Menu.NONE, i, i, menuItems[i]);
+//            }
+        }
+    }
+
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+        }
+        return true;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main2, menu);
@@ -207,14 +250,14 @@ public class Main2Activity extends AppCompatActivity
                         @Override
                         public void run() {
                             final int newArticles = Main2Activity.this.loader.hasNewArticles();
+
+                            SharedPreferences preferences =
+                                    Main2Activity.this.getSharedPreferences(
+                                            Main2Activity.PREF_NAME,
+                                            MODE_PRIVATE);
+                            SharedPreferences.Editor edit = preferences.edit();
+
                             if (newArticles > 0) {
-
-                                SharedPreferences preferences =
-                                        Main2Activity.this.getSharedPreferences(
-                                                Main2Activity.PREF_NAME,
-                                                MODE_PRIVATE);
-                                SharedPreferences.Editor edit = preferences.edit();
-
                                 edit.putInt(Main2Activity.NEW_COUNT, newArticles);
                                 if (newArticles >= 50) {
                                     // если скопилось слишком много новых статей, на всякий случай сбрасываем
@@ -235,6 +278,9 @@ public class Main2Activity extends AppCompatActivity
                                     }
                                 });
                             } else {
+                                edit.putInt(Main2Activity.NEW_COUNT, 0);
+                                edit.commit();
+
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -377,7 +423,7 @@ public class Main2Activity extends AppCompatActivity
             }
             case R.id.action_settings:
                 return true;
-            case R.id.action_download_article:
+            case R.id.action_download_new_article:
                 if (loader.isOnline()) {
                     ProgressBar pbar = findViewById(R.id.progressBar);
                     pbar.setVisibility(View.VISIBLE);

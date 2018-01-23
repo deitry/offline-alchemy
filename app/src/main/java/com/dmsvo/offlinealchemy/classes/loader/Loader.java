@@ -49,7 +49,7 @@ public class Loader { // implements Callback { // extends ILoader
 
     static Loader instance = null;
 
-    public static final int BASE_CNT = 7;
+    public static final int BASE_CNT = 5;
 
     static public Loader GetInstance() { return instance; }
     static public AppDb GetAppDb() { return db; }
@@ -248,7 +248,7 @@ public class Loader { // implements Callback { // extends ILoader
             // проверяем, есть ли статья с таким id в бд
             // если нету - скачиваем
             String path = ArticleGroupParser.GetArticlePath(el);
-            int id = Integer.parseInt(path.substring(34, path.length() - 5));
+            int id = ArticleParser.GetIdFromPath(path);
             Article found = db.getArticleDao().getArticle(id);
                 // если статья с таким id есть в бд, добавляем её в список вместо закачки
                 // вообще-т нам может потребоваться догрузить новые комментарии

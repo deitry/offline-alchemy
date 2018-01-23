@@ -94,9 +94,11 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     action_refresh_list
-    <string name="action_download_article">+1 целиком</string>
+    <string name="action_download_cur_article">Скачать</string>
+    <string name="action_download_new_article">+1 целиком</string>
     <string name="action_open_path">Открыть по ссылке</string>
-    <string name="action_refresh_list">+20</string>
+    <string name="action_refresh_list">+5</string>
+    <string name="action_filter">Фильтр</string>
     <string name="action_has_new">Есть новые?</string>
     <string name="action_has_new_comments">Есть новые комментарии?</string>
     <string name="action_refresh_tags">Обновить теги</string>
@@ -105,6 +107,11 @@
     <string name="action_open_browser">Открыть в браузере</string>
     <string name="action_unread">Пометить непрочтённым</string>
     <string name="action_fav">Избранное</string>
+    <string name="action_set_favorite">Добавить в избранное</string>
+    <string name="action_set_not_favorite">Удалить из избранного</string>
+    <string name="action_set_read">Пометить прочитанным</string>
+    <string name="action_set_not_read">Пометить непрочитанным</string>
+    <string name="action_delete_article">Удалить</string>
     <string name="action_settings">Настройки</string>
     <string name="title_activity_settings">Settings</string>
 

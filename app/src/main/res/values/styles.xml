@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -11,10 +11,12 @@
         <!--<item name="android:background">@color/dark</item>-->
         <item name="android:windowBackground">@color/dark</item>
         <item name="android:colorBackground">@color/dark</item>
+        <item name="android:actionModeBackground">@color/dark</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textColorHint">@color/soft_grey</item>
         <item name="android:popupBackground">@color/dark</item>
         <item name="android:itemBackground">@color/dark</item>
+        <item name="android:state_selected" android:drawable="@color/half_grey"/>
     </style>
 
     <style name="AppTheme.NoActionBar">

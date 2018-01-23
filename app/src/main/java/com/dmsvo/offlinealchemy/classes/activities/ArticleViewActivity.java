@@ -120,6 +120,18 @@ public class ArticleViewActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_article_view, menu);
+        if (cart != null) {
+            MenuItem item = menu.findItem(R.id.action_article_set_favorite);
+            item.setTitle(
+                    cart.article.getFavorite() > 0
+                            ? R.string.action_set_not_favorite
+                            : R.string.action_set_favorite);
+            item = menu.findItem(R.id.action_unread);
+            item.setTitle(
+                    cart.article.getWasRead() > 0
+                            ? R.string.action_set_not_read
+                            : R.string.action_set_read);
+        }
         return true;
     }
 
@@ -184,6 +196,11 @@ public class ArticleViewActivity extends AppCompatActivity {
 
                         if (newVersion != null) {
                             newVersion.article.setFavorite(cart.article.getFavorite());
+                            if (cart.article.getLoaded() > 0 && cart.article.getWasRead() > 0) {
+                                // если статья уже была загружена и прочитана, полагаем,
+                                // что мы просто решили скачать новые комментарии, которые тут же прочитаем
+                                newVersion.article.setWasRead(1);
+                            }
                             cart = newVersion;
 
 //                            loader.SaveInDb(cart);
@@ -235,13 +252,22 @@ public class ArticleViewActivity extends AppCompatActivity {
                 int read = cart.article.getWasRead() == 1 ? 0 : 1;
                 cart.article.setWasRead(read);
                 intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
+
+                item.setTitle(
+                        read > 0
+                                ? R.string.action_set_not_read
+                                : R.string.action_set_read);
                 break;
-            case R.id.action_fav:
+            case R.id.action_article_set_favorite:
                 if (cart == null) break;
 
                 int fav = cart.article.getFavorite() == 1 ? 0 : 1;
                 cart.article.setFavorite(fav);
                 intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
+                item.setTitle(
+                        fav > 0
+                                ? R.string.action_set_not_favorite
+                                : R.string.action_set_favorite);
                 break;
             case R.id.homeAsUp:
                 super.onBackPressed();

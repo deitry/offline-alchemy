@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ public class ArticleAdapter extends BaseAdapter {
     Activity context;
     List<CompleteArticle> data;
     private static LayoutInflater inflater = null;
+    private int currentSelection = -1;
 
     public ArticleAdapter(Activity context, List<CompleteArticle> articles)
     {
@@ -40,6 +42,21 @@ public class ArticleAdapter extends BaseAdapter {
     {
         data.addAll(additional);
         notifyDataSetChanged();
+    }
+
+    public interface OnSelectionChangedListener {
+        void OnSelectionChanged();
+    }
+
+    private OnSelectionChangedListener onSelectionChangedListener;
+    public void setOnSelectionChangedListener(OnSelectionChangedListener listener) {
+        onSelectionChangedListener = listener;
+    }
+
+    protected void onSelectionChanged() {
+        if (onSelectionChangedListener != null) {
+            onSelectionChangedListener.OnSelectionChanged();
+        }
     }
 
     @Override
@@ -60,6 +77,15 @@ public class ArticleAdapter extends BaseAdapter {
     public void setItem(int i, CompleteArticle cart)
     {
         data.set(i,cart);
+        notifyDataSetChanged();
+    }
+
+    public int getSelection() { return currentSelection; }
+
+    public void setSelection(int pos) {
+        currentSelection = pos;
+        notifyDataSetChanged();
+        onSelectionChanged();
     }
 
     @Override
@@ -67,6 +93,12 @@ public class ArticleAdapter extends BaseAdapter {
         View vi = view;
         if (vi == null)
             vi = inflater.inflate(R.layout.article_view, null);
+
+        if (position == currentSelection) {
+            vi.setBackgroundResource(R.color.accentedDark);
+        } else {
+            vi.setBackgroundResource(R.color.transparent);
+        }
 
         CompleteArticle cart = data.get(position);
         Article article = cart.article;

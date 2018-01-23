@@ -33,6 +33,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             android:layout_weight="5"
+            android:drawSelectorOnTop="true"
             />
 
         <Button
