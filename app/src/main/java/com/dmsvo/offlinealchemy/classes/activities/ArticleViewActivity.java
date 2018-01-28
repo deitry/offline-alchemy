@@ -3,6 +3,7 @@ package com.dmsvo.offlinealchemy.classes.activities;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Notification;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.net.Uri;
@@ -162,7 +163,9 @@ public class ArticleViewActivity extends AppCompatActivity {
                     Intent browserIntent = new Intent(
                             Intent.ACTION_VIEW,
                             Uri.parse(path));
-                    startActivity(browserIntent);
+                    //browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(Intent.createChooser(browserIntent, "Load " + path));
+
                 } catch (Throwable t) {
                     Toast toast = Toast.makeText(getApplicationContext(),
                             "Не удалось открыть страницу!",
@@ -203,12 +206,12 @@ public class ArticleViewActivity extends AppCompatActivity {
                             }
                             cart = newVersion;
 
-//                            loader.SaveInDb(cart);
+                            loader.SaveInDb(cart);
 
                             intent.putExtra(Main2Activity.OPEN_ARTICLE, cart);
 
                             ArticleViewActivity.this
-                                    .getHandler().post(new Runnable() {
+                                    .runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     updateArticle();

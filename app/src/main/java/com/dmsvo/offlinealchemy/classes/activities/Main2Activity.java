@@ -40,12 +40,14 @@ import com.dmsvo.offlinealchemy.classes.base.CompleteArticle;
 import com.dmsvo.offlinealchemy.classes.base.Tag;
 import com.dmsvo.offlinealchemy.classes.db.AppDb;
 import com.dmsvo.offlinealchemy.classes.db.ArticleDao;
+import com.dmsvo.offlinealchemy.classes.db.CommentDao;
 import com.dmsvo.offlinealchemy.classes.db.TagDao;
 import com.dmsvo.offlinealchemy.classes.loader.ArticleParser;
 import com.dmsvo.offlinealchemy.classes.runnables.ClearDb;
 import com.dmsvo.offlinealchemy.classes.runnables.LoadFromDb;
 import com.dmsvo.offlinealchemy.classes.loader.Loader;
 import com.dmsvo.offlinealchemy.classes.runnables.DownloadArticles;
+import com.dmsvo.offlinealchemy.classes.runnables.UpdateListView;
 import com.dmsvo.offlinealchemy.classes.views.ArticleAdapter;
 
 import java.io.Serializable;
@@ -116,7 +118,6 @@ public class Main2Activity extends AppCompatActivity
                 AppDb.class, "articles-database")
                 .addMigrations(AppDb.MIGRATION_2_3)
                 .addMigrations(AppDb.MIGRATION_3_4)
-//                .fallbackToDestructiveMigration()
                 .build();
 
         handler = new Handler(Looper.getMainLooper());
@@ -128,10 +129,14 @@ public class Main2Activity extends AppCompatActivity
                 tagToOpen = intent.getStringExtra(OPEN_TAG);
                 if (tagToOpen != null & !tagToOpen.equals("")) {
                     this.setTitle(tagToOpen);
+                } else {
+                    this.setTitle("Недавние");
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+        } else {
+            this.setTitle("Недавние");
         }
 
 //        ListView articlesView = Main2Activity.this.findViewById(R.id.articleslist);
@@ -259,11 +264,6 @@ public class Main2Activity extends AppCompatActivity
 
                             if (newArticles > 0) {
                                 edit.putInt(Main2Activity.NEW_COUNT, newArticles);
-                                if (newArticles >= 50) {
-                                    // если скопилось слишком много новых статей, на всякий случай сбрасываем
-                                    // дату последней скачанной статьи, чтобы перезакачать все
-                                    edit.putLong(Main2Activity.LAST_DATE, 0);
-                                }
                                 edit.commit();
 
                                 runOnUiThread(new Runnable() {
@@ -303,7 +303,7 @@ public class Main2Activity extends AppCompatActivity
                     toast.show();
                 }
                 return true;
-            case R.id.action_refresh_list:
+            case R.id.action_download_more:
                 if (loader.isOnline()) {
                     ProgressBar pbar = findViewById(R.id.progressBar);
                     pbar.setVisibility(View.VISIBLE);
@@ -547,16 +547,47 @@ public class Main2Activity extends AppCompatActivity
 
     public void onClickBtn(View v)
     {
-        ListView articles = findViewById(R.id.articleslist);
-        int cur = articles.getAdapter().getCount();
+        final ListView articles = findViewById(R.id.articleslist);
+        final int cur = articles.getAdapter().getCount();
 
-        ProgressBar pbar = findViewById(R.id.progressBar);
+        final ProgressBar pbar = findViewById(R.id.progressBar);
         pbar.setVisibility(View.VISIBLE);
 
-        // FIXME: вообще говоря, оффсет для чтения из базы данных и текущее количество
-        // записей - это скорее всего немного разные вещи. Попробуем так
-        new Thread(new LoadFromDb(this,Loader.BASE_CNT, cur)).start();
-        //Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
+//        new Thread(new LoadFromDb(this,Loader.BASE_CNT, cur)).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AppDb db = Main2Activity.this.getDb();
+                    ArticleDao adao = db.getArticleDao();
+                    CommentDao cdao = db.getCommentDao();
+
+                    List<CompleteArticle> carts;
+                    String tag = Main2Activity.this.getTagToOpen();
+
+                    if (tag == null || tag.equals("")) {
+                        carts = Main2Activity.this.getLoader().LoadFromDb(Loader.BASE_CNT, cur);
+                    } else {
+                        carts = Main2Activity.this.getLoader().LoadFromDb(tag, Loader.BASE_CNT, cur);
+                    }
+
+                    final List cCarts = carts;
+
+                    Main2Activity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArticleAdapter adapter = (ArticleAdapter) articles.getAdapter();
+                            adapter.addItems(cCarts);
+                            pbar.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+        }).start();
+
     }
 
 }

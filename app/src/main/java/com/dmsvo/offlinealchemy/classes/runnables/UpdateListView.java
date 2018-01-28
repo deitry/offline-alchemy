@@ -41,6 +41,19 @@ public class UpdateListView implements Runnable {
     @Override
     public void run() {
         try {
+            if (articles == null || articles.size() == 0) {
+                // ничего не трогаем, говорим, что нет доступных для скачивания статей
+                Toast.makeText(
+                        activity,
+                        "Нет доступных для скачивания статей",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                ProgressBar pbar = activity.findViewById(R.id.progressBar);
+                pbar.setVisibility(View.INVISIBLE);
+
+                return;
+            }
 
             final ListView articlesView = activity.findViewById(R.id.articleslist);
             ArticleAdapter adapter = (ArticleAdapter) articlesView.getAdapter();
@@ -103,7 +116,7 @@ public class UpdateListView implements Runnable {
                 });
             } else {
                 // не просто добавлять, а в конкретные места?
-                adapter.addItems(articles);
+                adapter.setItems(articles);
             }
             final ArticleAdapter constAdapter = adapter;
             ActionMode.Callback modeCallBack = new ActionMode.Callback() {
@@ -118,16 +131,16 @@ public class UpdateListView implements Runnable {
 
                             MenuItem item = menu.findItem(R.id.action_set_favorite);
                             if (fav > 0) {
-                                item.setIcon(R.drawable.ic_action_unfav);
-                            } else {
                                 item.setIcon(R.drawable.ic_action_favorite);
+                            } else {
+                                item.setIcon(R.drawable.ic_action_unfav);
                             }
 
                             item = menu.findItem(R.id.action_set_read);
                             if (read > 0) {
-                                item.setIcon(R.drawable.ic_action_unread);
-                            } else {
                                 item.setIcon(R.drawable.ic_action_read);
+                            } else {
+                                item.setIcon(R.drawable.ic_action_unread);
                             }
                         }
                         return true;
@@ -147,7 +160,6 @@ public class UpdateListView implements Runnable {
 
                     UpdateListView.this.contextMenu = menu;
 
-
                     return true;
                 }
 
@@ -162,9 +174,9 @@ public class UpdateListView implements Runnable {
                                 cart.article.setFavorite(fav);
                                 constAdapter.setItem(selId, cart);
                                 if (fav > 0) {
-                                    item.setIcon(R.drawable.ic_action_unfav);
-                                } else {
                                     item.setIcon(R.drawable.ic_action_favorite);
+                                } else {
+                                    item.setIcon(R.drawable.ic_action_unfav);
                                 }
                                 new Thread(new Runnable() {
                                     @Override
@@ -185,9 +197,9 @@ public class UpdateListView implements Runnable {
                                 cart.article.setWasRead(read);
                                 constAdapter.setItem(selId, cart);
                                 if (read > 0) {
-                                    item.setIcon(R.drawable.ic_action_unread);
-                                } else {
                                     item.setIcon(R.drawable.ic_action_read);
+                                } else {
+                                    item.setIcon(R.drawable.ic_action_unread);
                                 }
                                 new Thread(new Runnable() {
                                     @Override

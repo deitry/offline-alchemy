@@ -74,7 +74,7 @@ public class Loader { // implements Callback { // extends ILoader
         if (last == 0)
             pagePath = root;
         else {
-            // можно оптимизировать - к первым 500 можно обращаться через глагне / ?skip=300
+            // TODO: можно оптимизировать - к первым 500 можно обращаться через глагне / ?skip=300
             // тогда на странице загружаются по ~50 статей
 
             Calendar cal = Calendar.getInstance();
@@ -103,6 +103,59 @@ public class Loader { // implements Callback { // extends ILoader
 
             if (total <= 0)
                 break;
+
+            pagePath = ArticleGroupParser.PrevPath(doc);
+            if (pagePath == "")
+                break;
+        }
+
+        return fullList;
+    }
+
+    public List<CompleteArticle> LoadNew() {
+        // при загрузке новых, всегда начинаем сначала
+        String pagePath = root;
+
+        String page;
+
+        List<CompleteArticle> fullList = new ArrayList<>();
+
+        while (true) {
+            page = LoadPage(pagePath);
+            Document doc = Jsoup.parse(page);
+
+            // FIXME : вставили прямо сюда, потому что условие выхода из глобального цикла
+            // было спрятано во вложенной функции
+
+            // тут такой маленький гномик хихикает и подсказывает,
+            // что надо всё-всё переосмыслить
+
+            // находим контейнеры с описаниями статей
+            Elements elms = doc.getElementsByClass("entry-wrap js-emojis");
+            for (Element el : elms)
+            {
+                // проверяем, есть ли статья с таким id в бд
+                // если нету - скачиваем
+                String path = ArticleGroupParser.GetArticlePath(el);
+                int id = ArticleParser.GetIdFromPath(path);
+                Article found = db.getArticleDao().getArticle(id);
+
+                // если статья с таким id есть в бд, значит новые кончились
+                if (found != null)
+                {
+                    // выходим, если только это не прикреплённая запись
+                    if (el.html().contains("[sticky post]"))
+                        continue;
+
+                    return fullList;
+                }
+
+                CompleteArticle artcl
+                        = ArticleParser.BuildArticleFast(Jsoup.parse(el.html()));
+
+                fullList.add(artcl);
+                SaveInDb(artcl);
+            }
 
             pagePath = ArticleGroupParser.PrevPath(doc);
             if (pagePath == "")
@@ -238,7 +291,7 @@ public class Loader { // implements Callback { // extends ILoader
 
         // проходимся по странице и находим id всех статей
 
-        // находим контейнеры с описаниями статей
+        // находим контейнеры с описаниями статей //[sticky post]
         Elements elms = document.getElementsByClass("entry-wrap js-emojis");
         int i = 0;
         for (Element el : elms)
@@ -250,14 +303,10 @@ public class Loader { // implements Callback { // extends ILoader
             String path = ArticleGroupParser.GetArticlePath(el);
             int id = ArticleParser.GetIdFromPath(path);
             Article found = db.getArticleDao().getArticle(id);
-                // если статья с таким id есть в бд, добавляем её в список вместо закачки
-                // вообще-т нам может потребоваться догрузить новые комментарии
+
+            // если такая статья уже есть, пропускаем
             if (found != null)
             {
-                if (!fast) {
-                    List<Comment> comments = GetComments(id);
-                    list.add(new CompleteArticle(found, comments));
-                }
                 continue;
             }
 
@@ -274,6 +323,41 @@ public class Loader { // implements Callback { // extends ILoader
             SaveInDb(artcl);
 
             i++;
+        }
+
+        return list;
+    }
+
+    List<CompleteArticle> LoadNewArticles(Document document) {
+        List<CompleteArticle> list = new ArrayList<> ();
+
+        // проходимся по странице и находим id всех статей
+
+        // находим контейнеры с описаниями статей
+        Elements elms = document.getElementsByClass("entry-wrap js-emojis");
+        for (Element el : elms)
+        {
+            // проверяем, есть ли статья с таким id в бд
+            // если нету - скачиваем
+            String path = ArticleGroupParser.GetArticlePath(el);
+            int id = ArticleParser.GetIdFromPath(path);
+            Article found = db.getArticleDao().getArticle(id);
+
+            // если статья с таким id есть в бд, значит новые кончились
+            if (found != null)
+            {
+                // выходим, если только это не прикреплённая запись
+                if (el.html().contains("[sticky post]"))
+                    continue;
+
+                break;
+            }
+
+            CompleteArticle artcl
+                    = ArticleParser.BuildArticleFast(Jsoup.parse(el.html()));
+
+            list.add(artcl);
+            SaveInDb(artcl);
         }
 
         return list;

@@ -21,11 +21,11 @@ import static android.content.Context.MODE_PRIVATE;
 public class DownloadArticles implements Runnable {
 
     private Main2Activity activity;
-    boolean fast;
+    boolean loadOld;
 
-    public DownloadArticles(@NonNull Main2Activity activity, boolean fast) {
+    public DownloadArticles(@NonNull Main2Activity activity, boolean loadOld) {
         this.activity = activity;
-        this.fast = fast;
+        this.loadOld = loadOld;
     }
 
     @Override
@@ -38,12 +38,11 @@ public class DownloadArticles implements Runnable {
 //            = activity.getLoader().LoadFromDb();
             SharedPreferences preferences = activity.getSharedPreferences(Main2Activity.PREF_NAME, MODE_PRIVATE);
             SharedPreferences.Editor edit = preferences.edit();
+            
+            // новый подход - загружаем не "по 1 и по 5" и не "быстро или медленно", а "новые и старые"
 
-            int newCount = preferences.getInt(Main2Activity.NEW_COUNT, 0);
-
-            if (fast) {
-
-                // запоминаем дату последней статьи, чтобы при следующей загрузке начинать с неё
+            if (loadOld) {
+                // по старому, но без проверок на новые статьи
                 long lastTime = preferences.getLong(Main2Activity.LAST_DATE, 0);
                 Date lastDate;
                 if (lastTime > 0)
@@ -51,16 +50,9 @@ public class DownloadArticles implements Runnable {
                 else
                     lastDate = new Date();
 
-                if (newCount > 0) {
-                    carts = activity.getLoader().LoadNumber(newCount, true, 0);
-                    edit.putInt(Main2Activity.NEW_COUNT, newCount - carts.size());
-                    edit.commit();
+                carts = activity.getLoader().LoadNumber(Loader.BASE_CNT, true, lastTime);
 
-                    carts.addAll(activity.getLoader().LoadNumber(Loader.BASE_CNT - newCount, true, lastTime));
-                } else {
-                    carts = activity.getLoader().LoadNumber(Loader.BASE_CNT, true, lastTime);
-                }
-
+                // запоминаем дату последней статьи, чтобы при следующей загрузке начинать с неё
                 for (CompleteArticle cart : carts)
                 {
                     Date artDate = cart.article.getDate();
@@ -71,14 +63,11 @@ public class DownloadArticles implements Runnable {
 
                 edit.putLong(Main2Activity.LAST_DATE, lastDate.getTime());
                 edit.commit();
+
             } else {
-                carts = activity.getLoader().LoadNumber(1, false, 0);
-//                carts.addAll(activity.getLoader().LoadNumber(1, false));
-//                    TestData.GetTestData(activity, adao, cdao);
-                if (newCount > 0) {
-                    edit.putInt(Main2Activity.NEW_COUNT, newCount - carts.size());
-                    edit.commit();
-                }
+                // получаем все новые статьи с глагне - нам всё равно надо будет её загрузить,
+                // можно не сохранять значение "а сколько там сейчас новых"
+                carts = activity.getLoader().LoadNew();
             }
 
             activity.getHandler().post(new UpdateListView(activity,

@@ -1,61 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:context="com.dmsvo.offlinealchemy.classes.activities.ArticleViewActivity"
+    tools:showIn="@layout/activity_article_view"
+    android:fillViewport="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.dmsvo.offlinealchemy.classes.activities.ArticleViewActivity"
-    tools:showIn="@layout/activity_article_view"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    android:fillViewport="true"
-    >
+    android:nestedScrollingEnabled="true">
 
-    <LinearLayout
+
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         >
 
-        <!--<TextView
-            android:id="@+id/article_header"
-            android:visibility="invisible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/text_margin"
-            android:text="article header"
-            />-->
-
-        <TextView
-            android:id="@+id/article_body"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/text_margin"
-            android:text="article body" />
-
-        <TextView
-            android:id="@+id/comments_header"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/text_margin"
-            android:text="Комментарии"
-            android:textStyle="bold"
-            android:textAlignment="center"
-            android:textSize="16dp"
-            />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            >
 
-        <com.dmsvo.offlinealchemy.classes.views.CommentListView
-            android:id="@+id/commentsView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
 
-        <TextView
-            android:visibility="invisible"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="footer"/>
+            <!--app:popupTheme="@style/AppTheme.AppBarOverlay"-->
 
-    </LinearLayout>
-</ScrollView>
+            <!--<TextView
+                android:id="@+id/article_header"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                android:text="article header"
+                />-->
+
+            <TextView
+                android:id="@+id/article_body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                android:text="article body" />
+
+            <TextView
+                android:id="@+id/comments_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                android:text="Комментарии"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:textSize="16dp"
+                />
+
+            <com.dmsvo.offlinealchemy.classes.views.CommentListView
+                android:id="@+id/commentsView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:visibility="invisible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="footer"/>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

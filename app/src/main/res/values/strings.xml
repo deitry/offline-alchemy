@@ -95,9 +95,9 @@
     </string>
     action_refresh_list
     <string name="action_download_cur_article">Скачать</string>
-    <string name="action_download_new_article">+1 целиком</string>
+    <string name="action_download_new">Скачать новые</string>
     <string name="action_open_path">Открыть по ссылке</string>
-    <string name="action_refresh_list">+5</string>
+    <string name="action_download_more">Скачать 5 старых</string>
     <string name="action_filter">Фильтр</string>
     <string name="action_has_new">Есть новые?</string>
     <string name="action_has_new_comments">Есть новые комментарии?</string>

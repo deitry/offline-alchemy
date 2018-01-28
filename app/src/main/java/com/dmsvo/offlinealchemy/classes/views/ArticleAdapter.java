@@ -38,6 +38,11 @@ public class ArticleAdapter extends BaseAdapter {
                 Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void setItems(List<CompleteArticle> newData) {
+        data = newData;
+        notifyDataSetChanged();
+    }
+
     public void addItems(List<CompleteArticle> additional)
     {
         data.addAll(additional);

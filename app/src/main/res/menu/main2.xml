@@ -4,29 +4,31 @@
     android:background="@color/dark">
 
     <item
+        android:visible="false"
         android:id="@+id/action_filter"
         android:orderInCategory="100"
         android:title="@string/action_filter"
         android:icon="@drawable/ic_action_filter"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_has_new"
         android:orderInCategory="100"
         android:title="@string/action_has_new"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_action_has_new"
+        app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_refresh_list"
+        android:id="@+id/action_download_more"
         android:orderInCategory="100"
-        android:title="@string/action_refresh_list"
-        android:icon="@drawable/ic_action_more"
+        android:title="@string/action_download_more"
+        android:icon="@drawable/ic_action_download_more"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_download_new_article"
         android:orderInCategory="100"
-        android:title="@string/action_download_new_article"
+        android:title="@string/action_download_new"
         app:showAsAction="never" />
 
     <item
