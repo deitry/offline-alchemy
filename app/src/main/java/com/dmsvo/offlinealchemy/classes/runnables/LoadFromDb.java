@@ -36,11 +36,15 @@ public class LoadFromDb implements Runnable {
 
             List<CompleteArticle> carts;
             String tag = activity.getTagToOpen();
+            String search = activity.searchString;
 
-            if (tag == null || tag.equals("")) {
-                carts = activity.getLoader().LoadFromDb(count, offset);
-            } else {
+            if (tag != null && !tag.equals("")) {
                 carts = activity.getLoader().LoadFromDb(tag, count, offset);
+            } else if (search != null && !search.equals("")) {
+                carts = activity.getLoader().SearchInDb(search, count, offset,
+                        activity.searchTitle, activity.searchContent, activity.searchComments);
+            } else {
+                carts = activity.getLoader().LoadFromDb(count, offset);
             }
 
             activity.getHandler().post(new UpdateListView(activity, carts));

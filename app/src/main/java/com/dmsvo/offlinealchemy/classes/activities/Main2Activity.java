@@ -5,6 +5,7 @@ import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -60,8 +62,14 @@ public class Main2Activity extends AppCompatActivity
 
     public static final String OPEN_ARTICLE = "com.dmsvo.offlinealchemy.ARTICLE";
     public static final String OPEN_TAG = "com.dmsvo.offlinealchemy.TAG";
+    public static final String SEARCH_STRING = "com.dmsvo.offlinealchemy.SEARCH";
+    public static final String SEARCH_TITLE = "com.dmsvo.offlinealchemy.SEARCH_TITLE";
+    public static final String SEARCH_CONTENT = "com.dmsvo.offlinealchemy.SEARCH_CONTENT";
+    public static final String SEARCH_COMMENTS = "com.dmsvo.offlinealchemy.SEARCH_COMMENTS";
+
     public static final int I_OPEN_ARTICLE = 1;
     public static final int I_OPEN_TAGS = 2;
+    public static final int I_SEARCH = 2;
 
     public static final String PREF_NAME = "preferences";
     public static final String LAST_DATE = "edgeDate";
@@ -71,6 +79,10 @@ public class Main2Activity extends AppCompatActivity
     AppDb db;
     Loader loader;
     String tagToOpen = "";
+    public String searchString = "";
+    public boolean searchTitle = false;
+    public boolean searchContent = false;
+    public boolean searchComments = false;
 
     public String getTagToOpen() { return tagToOpen; }
 
@@ -123,24 +135,31 @@ public class Main2Activity extends AppCompatActivity
         handler = new Handler(Looper.getMainLooper());
         loader = new Loader(db);
 
+        this.setTitle("");
+
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(OPEN_TAG)) {
-            try {
-                tagToOpen = intent.getStringExtra(OPEN_TAG);
-                if (tagToOpen != null & !tagToOpen.equals("")) {
-                    this.setTitle(tagToOpen);
-                } else {
-                    this.setTitle("Недавние");
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
+        try {
+            tagToOpen = intent.getStringExtra(OPEN_TAG);
+            searchString = intent.getStringExtra(SEARCH_STRING);
+            if (tagToOpen != null && !tagToOpen.equals("")) {
+                this.setTitle(tagToOpen);
+            } else if (searchString != null && !searchString.equals("")) {
+                searchTitle = intent.getBooleanExtra(SEARCH_TITLE, false);
+                searchContent = intent.getBooleanExtra(SEARCH_CONTENT, false);
+                searchComments = intent.getBooleanExtra(SEARCH_COMMENTS, false);
+
+                this.setTitle(searchString);
+
+                Button moreBtn = findViewById(R.id.moreBtn);
+                moreBtn.setVisibility(View.GONE);
             }
-        } else {
-            this.setTitle("Недавние");
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
 
-//        ListView articlesView = Main2Activity.this.findViewById(R.id.articleslist);
-//        registerForContextMenu(articlesView);
+        if (this.getTitle() == null || this.getTitle().equals("")) {
+            this.setTitle("Недавние");
+        }
 
         ProgressBar pbar = findViewById(R.id.progressBar);
         pbar.setVisibility(View.VISIBLE);
@@ -188,7 +207,7 @@ public class Main2Activity extends AppCompatActivity
             if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
             }
-        }
+        } // requestCode == I_OPEN_ARTICLE
     }
 
     @Override
@@ -533,6 +552,19 @@ public class Main2Activity extends AppCompatActivity
         } else if (id == R.id.nav_by_date) {
 
         } else if (id == R.id.nav_search) {
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // если тегов нет, заполняем
+                    Intent intent = new Intent(
+                            Main2Activity.this,
+                            SearchActivity.class);
+                    intent.putExtra("search_type", 1);
+                    Main2Activity.this.startActivity(   // requestCode = 2
+                            intent);
+                }
+            }).start();
 
         } else if (id == R.id.nav_share) {
 

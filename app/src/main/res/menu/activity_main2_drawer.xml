@@ -33,7 +33,7 @@
             android:icon="@drawable/ic_nav_by_date"
             android:title="@string/nav_by_date" />
         <item
-            android:visible="false"
+            android:visible="true"
             android:id="@+id/nav_search"
             android:icon="@drawable/ic_nav_search"
             android:title="@string/nav_search" />

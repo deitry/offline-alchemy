@@ -16,7 +16,6 @@
         <item name="android:textColorHint">@color/soft_grey</item>
         <item name="android:popupBackground">@color/dark</item>
         <item name="android:itemBackground">@color/dark</item>
-        <item name="android:state_selected" android:drawable="@color/half_grey"/>
     </style>
 
     <style name="AppTheme.NoActionBar">

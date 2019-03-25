@@ -87,5 +87,15 @@ public interface ArticleDao {
     @Query("SELECT * FROM article ORDER BY date DESC LIMIT 1")
     Article getLatest();
 
+    // Поиск
+    @Query("SELECT * FROM article "
+            + "WHERE name LIKE :title "
+            + "ORDER BY date DESC")
+    List<Article> searchInTitle(String title);
 
+    // Поиск
+    @Query("SELECT * FROM article "
+            + "WHERE body LIKE :content "
+            + "ORDER BY date DESC")
+    List<Article> searchInContent(String content);
 }

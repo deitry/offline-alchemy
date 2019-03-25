@@ -26,29 +26,39 @@
         <activity
             android:name=".classes.activities.ArticleViewActivity"
             android:label="@string/title_activity_article_view"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:host="evo-lutio.livejournal.com" android:pathPattern="/.*.html" android:scheme="http"/>
-                <data android:host="evo-lutio.livejournal.com" android:pathPattern="/.*.html" android:scheme="https"/>
-                <data android:host="evo-lutio.livejournal.com" android:pathPattern="/.*.html" android:scheme="android-app"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="evo-lutio.livejournal.com"
+                    android:pathPattern="/.*.html"
+                    android:scheme="http" />
+                <data
+                    android:host="evo-lutio.livejournal.com"
+                    android:pathPattern="/.*.html"
+                    android:scheme="https" />
+                <data
+                    android:host="evo-lutio.livejournal.com"
+                    android:pathPattern="/.*.html"
+                    android:scheme="android-app" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
             </intent-filter>
         </activity>
         <activity
             android:name=".classes.activities.SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
-            android:name=".classes.activities.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
             android:name=".classes.activities.TagsActivity"
             android:label="@string/title_activity_tags"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".classes.activities.SearchActivity"
+            android:label="@string/title_activity_search"></activity>
     </application>
 
 </manifest>

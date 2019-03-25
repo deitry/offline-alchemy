@@ -213,6 +213,42 @@ public class Loader { // implements Callback { // extends ILoader
         return carts;
     }
 
+    public List<CompleteArticle> SearchInDb(String search, int count, int offset,
+                                            boolean inTitle, boolean inContent, boolean inComments) {
+        List<CompleteArticle> carts = new ArrayList<>();
+        List<Article> articles = new ArrayList<>();
+
+        if (inTitle) {
+            articles.addAll(db.getArticleDao().searchInTitle(
+                    ArticleParser.Tag(search)));
+        }
+
+        if (inContent) {
+            articles.addAll(db.getArticleDao().searchInContent(
+                    ArticleParser.Tag(search)));
+        }
+
+        for (Article artcl : articles) {
+            try {
+                //List<Comment> comts = GetComments(artcl.getId());
+                try {
+                    int cnt = db.getCommentDao().getCommentCount(artcl.getId());
+                    artcl.setCommentCount(cnt);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+
+                carts.add(new CompleteArticle(
+                        artcl,
+                        null
+                ));
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        return carts;
+    }
+
     public List<CompleteArticle> LoadFromDb(int count, int offset) {
         List<CompleteArticle> carts = new ArrayList<>();
 
